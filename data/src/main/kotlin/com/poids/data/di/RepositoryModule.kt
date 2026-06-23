@@ -1,9 +1,13 @@
 package com.poids.data.di
 
 import com.poids.data.repository.DailyEnergyRepositoryImpl
+import com.poids.data.repository.FoodRepositoryImpl
+import com.poids.data.repository.MealRepositoryImpl
 import com.poids.data.repository.ProfileRepositoryImpl
 import com.poids.data.repository.WeightRepositoryImpl
 import com.poids.domain.repository.DailyEnergyRepository
+import com.poids.domain.repository.FoodRepository
+import com.poids.domain.repository.MealRepository
 import com.poids.domain.repository.ProfileRepository
 import com.poids.domain.repository.WeightRepository
 import dagger.Binds
@@ -32,4 +36,12 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindDailyEnergyRepository(impl: DailyEnergyRepositoryImpl): DailyEnergyRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindFoodRepository(impl: FoodRepositoryImpl): FoodRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindMealRepository(impl: MealRepositoryImpl): MealRepository
 }

@@ -19,16 +19,12 @@ interface FoodItemDao {
     @Query("SELECT * FROM food_item WHERE id = :id LIMIT 1")
     fun observeById(id: Long): Flow<FoodItemEntity?>
 
-    /**
-     * Recherche plein-texte via la table FTS4. `query` doit être un terme FTS
-     * (ex. "yaourt*" pour le préfixe). Le join relie le rowid FTS à l'aliment.
-     */
+    /** Recherche par nom/marque (LIKE, insensible à la casse via NOCASE de SQLite). */
     @Query(
         """
-        SELECT f.* FROM food_item f
-        JOIN food_item_fts fts ON f.id = fts.rowid
-        WHERE food_item_fts MATCH :query
-        ORDER BY f.name
+        SELECT * FROM food_item
+        WHERE name LIKE '%' || :query || '%' OR brand LIKE '%' || :query || '%'
+        ORDER BY name
         LIMIT :limit
         """,
     )
