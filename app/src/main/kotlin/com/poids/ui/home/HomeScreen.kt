@@ -4,9 +4,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -26,11 +30,26 @@ import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
+fun HomeScreen(
+    onConfigureProfile: () -> Unit,
+    onEditProfile: () -> Unit,
+    viewModel: HomeViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Poids") }) },
+        topBar = {
+            TopAppBar(
+                title = { Text("Poids") },
+                actions = {
+                    if (state is HomeUiState.Ready) {
+                        IconButton(onClick = onEditProfile) {
+                            Icon(Icons.Filled.Edit, contentDescription = "Modifier le profil")
+                        }
+                    }
+                },
+            )
+        },
     ) { padding ->
         Column(
             modifier = Modifier
@@ -42,7 +61,7 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
         ) {
             when (val s = state) {
                 HomeUiState.Loading -> CircularProgressIndicator()
-                HomeUiState.NoProfile -> NoProfileContent(onCreate = viewModel::createSampleProfile)
+                HomeUiState.NoProfile -> NoProfileContent(onConfigure = onConfigureProfile)
                 is HomeUiState.Ready -> ReadyContent(s.profile, s.latestWeight, s.targets)
             }
         }
@@ -50,20 +69,19 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun NoProfileContent(onCreate: () -> Unit) {
+private fun NoProfileContent(onConfigure: () -> Unit) {
     Text(
-        text = "Aucun profil configuré.",
-        style = MaterialTheme.typography.titleMedium,
+        text = "Bienvenue !",
+        style = MaterialTheme.typography.headlineSmall,
         textAlign = TextAlign.Center,
     )
     Text(
-        text = "L'écran de profil arrive à la prochaine feature. " +
-            "Pour vérifier que la base est bien câblée, crée un profil d'exemple.",
+        text = "Configure ton profil pour calculer ton métabolisme et ta cible calorique.",
         style = MaterialTheme.typography.bodyMedium,
         textAlign = TextAlign.Center,
         modifier = Modifier.padding(vertical = 16.dp),
     )
-    Button(onClick = onCreate) { Text("Créer un profil d'exemple") }
+    Button(onClick = onConfigure) { Text("Configurer mon profil") }
 }
 
 @Composable
@@ -78,18 +96,15 @@ private fun ReadyContent(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         val weight = latestWeight?.weightKg ?: profile.weightKg
-        Line("Poids actuel", "${weight} kg")
+        Line("Poids actuel", "$weight kg")
         Line("BMR", "${targets.bmr.roundToInt()} kcal")
         Line("TDEE", "${targets.tdee.roundToInt()} kcal")
         Line("Cible du jour", "${targets.dailyTarget.roundToInt()} kcal")
-        Line("Déficit appliqué", "${targets.dailyDeltaKcal.roundToInt()} kcal")
+        Line("Écart appliqué", "${targets.dailyDeltaKcal.roundToInt()} kcal")
     }
 }
 
 @Composable
 private fun Line(label: String, value: String) {
-    Text(
-        text = "$label : $value",
-        style = MaterialTheme.typography.bodyLarge,
-    )
+    Text(text = "$label : $value", style = MaterialTheme.typography.bodyLarge)
 }
