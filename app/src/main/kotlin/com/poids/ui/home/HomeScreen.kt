@@ -2,11 +2,16 @@ package com.poids.ui.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -23,9 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.poids.domain.model.CalorieTargets
-import com.poids.domain.model.UserProfile
-import com.poids.domain.model.WeightEntry
+import com.poids.domain.model.DailyEnergyBalance
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,6 +36,7 @@ import kotlin.math.roundToInt
 fun HomeScreen(
     onConfigureProfile: () -> Unit,
     onEditProfile: () -> Unit,
+    onOpenWeight: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -51,30 +55,32 @@ fun HomeScreen(
             )
         },
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            when (val s = state) {
-                HomeUiState.Loading -> CircularProgressIndicator()
-                HomeUiState.NoProfile -> NoProfileContent(onConfigure = onConfigureProfile)
-                is HomeUiState.Ready -> ReadyContent(s.profile, s.latestWeight, s.targets)
-            }
+        when (val s = state) {
+            HomeUiState.Loading -> Centered(padding) { CircularProgressIndicator() }
+            HomeUiState.NoProfile -> Centered(padding) { NoProfileContent(onConfigureProfile) }
+            is HomeUiState.Ready -> ReadyContent(s, onOpenWeight, Modifier.padding(padding))
         }
     }
 }
 
 @Composable
+private fun Centered(
+    padding: androidx.compose.foundation.layout.PaddingValues,
+    content: @Composable () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(padding)
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) { content() }
+}
+
+@Composable
 private fun NoProfileContent(onConfigure: () -> Unit) {
-    Text(
-        text = "Bienvenue !",
-        style = MaterialTheme.typography.headlineSmall,
-        textAlign = TextAlign.Center,
-    )
+    Text("Bienvenue !", style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
     Text(
         text = "Configure ton profil pour calculer ton métabolisme et ta cible calorique.",
         style = MaterialTheme.typography.bodyMedium,
@@ -86,25 +92,82 @@ private fun NoProfileContent(onConfigure: () -> Unit) {
 
 @Composable
 private fun ReadyContent(
-    profile: UserProfile,
-    latestWeight: WeightEntry?,
-    targets: CalorieTargets,
+    state: HomeUiState.Ready,
+    onOpenWeight: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Text("Bilan du jour", style = MaterialTheme.typography.headlineSmall)
     Column(
-        modifier = Modifier.padding(top = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        val weight = latestWeight?.weightKg ?: profile.weightKg
-        Line("Poids actuel", "$weight kg")
-        Line("BMR", "${targets.bmr.roundToInt()} kcal")
-        Line("TDEE", "${targets.tdee.roundToInt()} kcal")
-        Line("Cible du jour", "${targets.dailyTarget.roundToInt()} kcal")
-        Line("Écart appliqué", "${targets.dailyDeltaKcal.roundToInt()} kcal")
+        val weight = state.latestWeight?.weightKg ?: state.profile.weightKg
+
+        SectionCard("Poids") {
+            Line("Poids actuel", "$weight kg")
+            Button(onClick = onOpenWeight, modifier = Modifier.padding(top = 8.dp)) {
+                Text("Mes pesées")
+            }
+        }
+
+        SectionCard("Objectif calorique") {
+            Line("BMR", "${state.targets.bmr.roundToInt()} kcal")
+            Line("TDEE", "${state.targets.tdee.roundToInt()} kcal")
+            Line("Cible du jour", "${state.targets.dailyTarget.roundToInt()} kcal")
+            Line("Écart appliqué", "${state.targets.dailyDeltaKcal.roundToInt()} kcal")
+        }
+
+        BalanceCard(state.balance)
+    }
+}
+
+@Composable
+private fun BalanceCard(balance: DailyEnergyBalance) {
+    SectionCard("Bilan du jour") {
+        Line("Ingérées", "${balance.intakeKcal.roundToInt()} kcal")
+        Line("Brûlées", "${balance.burnedKcal.roundToInt()} kcal")
+        Line("Cible", "${balance.targetKcal.roundToInt()} kcal")
+        val net = balance.netVsTarget.roundToInt()
+        val color = if (net <= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+        Text(
+            text = "Solde vs cible : $net kcal",
+            style = MaterialTheme.typography.titleMedium,
+            color = color,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        Text(
+            text = "Ingérées et brûlées seront alimentées par les features nutrition et activité.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+    }
+}
+
+@Composable
+private fun SectionCard(title: String, content: @Composable () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(title, style = MaterialTheme.typography.titleLarge)
+            content()
+        }
     }
 }
 
 @Composable
 private fun Line(label: String, value: String) {
-    Text(text = "$label : $value", style = MaterialTheme.typography.bodyLarge)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyLarge)
+        Text(value, style = MaterialTheme.typography.bodyLarge)
+    }
 }

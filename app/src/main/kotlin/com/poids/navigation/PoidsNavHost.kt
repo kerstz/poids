@@ -7,11 +7,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.poids.ui.home.HomeScreen
 import com.poids.ui.profile.ProfileScreen
+import com.poids.ui.weight.WeightScreen
 
 /** Destinations de navigation. Étendu au fil des features. */
 object Destinations {
     const val HOME = "home"
     const val PROFILE = "profile"
+    const val WEIGHT = "weight"
 }
 
 @Composable
@@ -21,6 +23,7 @@ fun PoidsNavHost(navController: NavHostController = rememberNavController()) {
             HomeScreen(
                 onConfigureProfile = { navController.navigate(Destinations.PROFILE) },
                 onEditProfile = { navController.navigate(Destinations.PROFILE) },
+                onOpenWeight = { navController.navigate(Destinations.WEIGHT) },
             )
         }
         composable(Destinations.PROFILE) {
@@ -28,6 +31,9 @@ fun PoidsNavHost(navController: NavHostController = rememberNavController()) {
                 onSaved = { navController.popBackStack() },
                 onBack = { navController.popBackStack() },
             )
+        }
+        composable(Destinations.WEIGHT) {
+            WeightScreen(onBack = { navController.popBackStack() })
         }
     }
 }

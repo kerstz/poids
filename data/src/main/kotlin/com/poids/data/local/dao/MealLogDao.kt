@@ -19,4 +19,15 @@ interface MealLogDao {
 
     @Query("SELECT * FROM meal_log WHERE dateTime >= :start AND dateTime < :end ORDER BY dateTime")
     fun observeBetween(start: LocalDateTime, end: LocalDateTime): Flow<List<MealLogEntity>>
+
+    /** Total des calories ingérées sur l'intervalle (kcal = énergie/100 × quantité). */
+    @Query(
+        """
+        SELECT COALESCE(SUM(f.energyKcal100 * m.quantityG / 100.0), 0.0)
+        FROM meal_log m
+        JOIN food_item f ON f.id = m.foodItemId
+        WHERE m.dateTime >= :start AND m.dateTime < :end
+        """,
+    )
+    fun observeIntakeKcal(start: LocalDateTime, end: LocalDateTime): Flow<Double>
 }

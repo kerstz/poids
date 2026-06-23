@@ -1,7 +1,9 @@
 package com.poids.data.di
 
+import com.poids.data.repository.DailyEnergyRepositoryImpl
 import com.poids.data.repository.ProfileRepositoryImpl
 import com.poids.data.repository.WeightRepositoryImpl
+import com.poids.domain.repository.DailyEnergyRepository
 import com.poids.domain.repository.ProfileRepository
 import com.poids.domain.repository.WeightRepository
 import dagger.Binds
@@ -26,4 +28,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindWeightRepository(impl: WeightRepositoryImpl): WeightRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindDailyEnergyRepository(impl: DailyEnergyRepositoryImpl): DailyEnergyRepository
 }
