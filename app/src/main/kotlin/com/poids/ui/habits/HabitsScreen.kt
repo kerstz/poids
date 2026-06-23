@@ -1,6 +1,7 @@
 package com.poids.ui.habits
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,7 +35,10 @@ import com.poids.ui.weight.WeightTrendChart
 private val dayLetters = listOf("L", "M", "M", "J", "V", "S", "D")
 
 @Composable
-fun HabitsScreen(viewModel: HabitsViewModel = hiltViewModel()) {
+fun HabitsScreen(
+    onOpenSubstances: () -> Unit = {},
+    viewModel: HabitsViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showSleepDialog by remember { mutableStateOf(false) }
     var showSubstanceDialog by remember { mutableStateOf(false) }
@@ -65,6 +69,7 @@ fun HabitsScreen(viewModel: HabitsViewModel = hiltViewModel()) {
             tobacco = state.tobaccoToday,
             caffeine = state.caffeineToday,
             onAdd = { showSubstanceDialog = true },
+            onOpenHistory = onOpenSubstances,
         )
 
         PoidsCard(modifier = Modifier.fillMaxWidth()) {
@@ -180,9 +185,22 @@ private fun SubstancesCard(
     tobacco: Double,
     caffeine: Double,
     onAdd: () -> Unit,
+    onOpenHistory: () -> Unit,
 ) {
     PoidsCard(modifier = Modifier.fillMaxWidth()) {
-        Text("Substances · aujourd'hui", style = MaterialTheme.typography.titleMedium)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Substances · aujourd'hui", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Historique ›",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable(onClick = onOpenHistory),
+            )
+        }
         SubstanceRow("Alcool", alcohol)
         SubstanceRow("Tabac", tobacco)
         SubstanceRow("Café", caffeine)
