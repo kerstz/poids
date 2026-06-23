@@ -25,6 +25,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.poids.ui.activity.ActivityScreen
 import com.poids.ui.habits.HabitsScreen
+import com.poids.ui.habits.SubstancesHistoryScreen
 import com.poids.ui.home.HomeScreen
 import com.poids.ui.nutrition.NutritionScreen
 import com.poids.ui.nutrition.addmeal.AddMealScreen
@@ -47,6 +48,7 @@ object Destinations {
     const val PROFILE_EDIT = "profile_edit"
     const val WEIGHT = "weight"
     const val TRENDS = "trends"
+    const val SUBSTANCES = "substances"
     const val FOOD_SEARCH = "food_search"
     const val MANUAL_FOOD = "manual_food"
     const val ADD_MEAL = "add_meal/{foodId}"
@@ -112,7 +114,9 @@ fun PoidsNavHost(navController: NavHostController = rememberNavController()) {
                     onAddMeal = { foodId -> navController.navigate(Destinations.addMeal(foodId)) },
                 )
             }
-            composable(Destinations.HABITS) { HabitsScreen() }
+            composable(Destinations.HABITS) {
+                HabitsScreen(onOpenSubstances = { navController.navigate(Destinations.SUBSTANCES) })
+            }
             composable(Destinations.PROFILE) {
                 ProfileViewScreen(
                     onEdit = { navController.navigate(Destinations.PROFILE_EDIT) },
@@ -132,6 +136,9 @@ fun PoidsNavHost(navController: NavHostController = rememberNavController()) {
             }
             composable(Destinations.TRENDS) {
                 TrendsScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Destinations.SUBSTANCES) {
+                SubstancesHistoryScreen(onBack = { navController.popBackStack() })
             }
             composable(Destinations.FOOD_SEARCH) {
                 FoodSearchScreen(
