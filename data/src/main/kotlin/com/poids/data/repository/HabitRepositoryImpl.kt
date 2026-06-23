@@ -70,7 +70,8 @@ class HabitRepositoryImpl @Inject constructor(
         amount: Double,
         unit: String,
         label: String?,
-    ) = substanceDao.update(id, dateTime, kind, amount, unit, label)
+        note: String?,
+    ) = substanceDao.update(id, dateTime, kind, amount, unit, label, note)
 
     override suspend fun deleteSubstance(id: Long) = substanceDao.deleteById(id)
 }

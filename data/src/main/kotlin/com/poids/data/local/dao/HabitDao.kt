@@ -30,7 +30,7 @@ interface SubstanceDao {
     @Query(
         """
         UPDATE substance_log
-        SET dateTime = :dateTime, kind = :kind, amount = :amount, unit = :unit, label = :label
+        SET dateTime = :dateTime, kind = :kind, amount = :amount, unit = :unit, label = :label, note = :note
         WHERE id = :id
         """,
     )
@@ -41,6 +41,7 @@ interface SubstanceDao {
         amount: Double,
         unit: String,
         label: String?,
+        note: String?,
     )
 
     @Query("DELETE FROM substance_log WHERE id = :id")

@@ -25,6 +25,8 @@ data class SubstanceHistoryUiState(
     val totalMonthByName: Map<String, Double> = emptyMap(),
     val totalYearByName: Map<String, Double> = emptyMap(),
     val entries: List<SubstanceLog> = emptyList(),
+    /** (nom, unité) déjà saisis, pour l'autocomplete. */
+    val recent: List<Pair<String, String>> = emptyList(),
 )
 
 @HiltViewModel
@@ -65,20 +67,23 @@ class SubstanceHistoryViewModel @Inject constructor(
                     .sumOf { it.first.amount }
             },
             entries = all,
+            recent = named.map { it.second to it.first.unit }.distinctBy { it.first.lowercase() }.take(9),
         )
     }
 
     fun addSubstance(input: SubstanceEntryInput) {
         viewModelScope.launch {
             habitRepository.addSubstance(
-                input.dateTime, input.kind, input.amount, input.unit, input.name, null,
+                input.dateTime, input.kind, input.amount, input.unit, input.name, input.note,
             )
         }
     }
 
     fun updateSubstance(id: Long, input: SubstanceEntryInput) {
         viewModelScope.launch {
-            habitRepository.updateSubstance(id, input.dateTime, input.kind, input.amount, input.unit, input.name)
+            habitRepository.updateSubstance(
+                id, input.dateTime, input.kind, input.amount, input.unit, input.name, input.note,
+            )
         }
     }
 

@@ -33,19 +33,21 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneOffset
 
-/** Entrée de consommation : nom de substance, dose, unité, date/heure. */
+/** Entrée de consommation : nom de substance, dose, unité, date/heure, note. */
 data class SubstanceEntryInput(
     val name: String,
     val kind: SubstanceKind,
     val amount: Double,
     val unit: String,
     val dateTime: LocalDateTime,
+    val note: String? = null,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubstanceEntryDialog(
     initial: SubstanceEntryInput? = null,
+    recent: List<Pair<String, String>> = emptyList(),
     onDismiss: () -> Unit,
     onConfirm: (SubstanceEntryInput) -> Unit,
 ) {
@@ -53,12 +55,19 @@ fun SubstanceEntryDialog(
     var name by remember { mutableStateOf(initial?.name ?: "") }
     var dose by remember { mutableStateOf(initial?.amount?.let(::fmtDose) ?: "1") }
     var unit by remember { mutableStateOf(initial?.unit ?: "mg") }
+    var note by remember { mutableStateOf(initial?.note ?: "") }
     var date by remember { mutableStateOf(initial?.dateTime?.toLocalDate() ?: now.toLocalDate()) }
     var time by remember {
         mutableStateOf("%02d:%02d".format((initial?.dateTime ?: now).hour, (initial?.dateTime ?: now).minute))
     }
     var error by remember { mutableStateOf<String?>(null) }
     var showDatePicker by remember { mutableStateOf(false) }
+
+    // Chips : raccourcis fixes + substances déjà saisies (autocomplete).
+    val fixed = listOf("Alcool" to "verres", "Tabac" to "cig.", "Café" to "tasses")
+    val chips = (fixed + recent.filter { r -> fixed.none { it.first.equals(r.first, true) } })
+        .distinctBy { it.first.lowercase() }
+        .take(9)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -69,7 +78,7 @@ fun SubstanceEntryDialog(
                     modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    listOf("Alcool" to "verres", "Tabac" to "cig.", "Café" to "tasses").forEach { (n, u) ->
+                    chips.forEach { (n, u) ->
                         AssistChip(
                             onClick = { name = n; unit = u },
                             label = { Text(n) },
@@ -113,6 +122,13 @@ fun SubstanceEntryDialog(
                     onValueChange = { time = it; error = null },
                     label = { Text("Heure (HH:MM)") },
                     singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = note,
+                    onValueChange = { note = it },
+                    label = { Text("Note (contexte, ressenti…)") },
+                    singleLine = false,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
