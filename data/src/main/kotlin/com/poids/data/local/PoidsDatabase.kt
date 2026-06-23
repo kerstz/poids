@@ -1,0 +1,56 @@
+package com.poids.data.local
+
+import androidx.room.Database
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import com.poids.data.local.converter.Converters
+import com.poids.data.local.dao.ActivityDao
+import com.poids.data.local.dao.FoodItemDao
+import com.poids.data.local.dao.MealLogDao
+import com.poids.data.local.dao.SleepDao
+import com.poids.data.local.dao.StepDao
+import com.poids.data.local.dao.SubstanceDao
+import com.poids.data.local.dao.UserProfileDao
+import com.poids.data.local.dao.WeightDao
+import com.poids.data.local.entity.ActivitySessionEntity
+import com.poids.data.local.entity.FoodItemEntity
+import com.poids.data.local.entity.FoodItemFts
+import com.poids.data.local.entity.MealLogEntity
+import com.poids.data.local.entity.RoutePointEntity
+import com.poids.data.local.entity.SleepLogEntity
+import com.poids.data.local.entity.StepDayEntity
+import com.poids.data.local.entity.SubstanceLogEntity
+import com.poids.data.local.entity.UserProfileEntity
+import com.poids.data.local.entity.WeightEntryEntity
+
+@Database(
+    entities = [
+        UserProfileEntity::class,
+        WeightEntryEntity::class,
+        FoodItemEntity::class,
+        FoodItemFts::class,
+        MealLogEntity::class,
+        ActivitySessionEntity::class,
+        RoutePointEntity::class,
+        StepDayEntity::class,
+        SleepLogEntity::class,
+        SubstanceLogEntity::class,
+    ],
+    version = 1,
+    exportSchema = true,
+)
+@TypeConverters(Converters::class)
+abstract class PoidsDatabase : RoomDatabase() {
+    abstract fun userProfileDao(): UserProfileDao
+    abstract fun weightDao(): WeightDao
+    abstract fun foodItemDao(): FoodItemDao
+    abstract fun mealLogDao(): MealLogDao
+    abstract fun activityDao(): ActivityDao
+    abstract fun stepDao(): StepDao
+    abstract fun sleepDao(): SleepDao
+    abstract fun substanceDao(): SubstanceDao
+
+    companion object {
+        const val NAME = "poids.db"
+    }
+}
