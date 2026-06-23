@@ -22,4 +22,11 @@ object StepDistanceCalculator {
     /** Distance en mètres. */
     fun distanceMeters(steps: Int, heightCm: Double, sex: Sex): Double =
         steps * stepLengthCm(heightCm, sex) / 100.0
+
+    /**
+     * Calories (nettes) dépensées en marchant une distance donnée.
+     * Coût énergétique net de la marche ≈ 0,5 kcal/kg/km. Estimation (±20-30 %).
+     */
+    fun caloriesWalked(distanceM: Double, weightKg: Double): Double =
+        distanceM / 1000.0 * weightKg * 0.5
 }
