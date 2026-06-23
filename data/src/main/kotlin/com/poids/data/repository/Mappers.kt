@@ -3,7 +3,9 @@ package com.poids.data.repository
 import com.poids.data.local.entity.ActivitySessionEntity
 import com.poids.data.local.entity.FoodItemEntity
 import com.poids.data.local.entity.RoutePointEntity
+import com.poids.data.local.entity.SleepLogEntity
 import com.poids.data.local.entity.StepDayEntity
+import com.poids.data.local.entity.SubstanceLogEntity
 import com.poids.data.local.entity.UserProfileEntity
 import com.poids.data.local.entity.WeightEntryEntity
 import com.poids.data.local.relation.MealWithFood
@@ -11,7 +13,9 @@ import com.poids.domain.model.ActivitySession
 import com.poids.domain.model.FoodItem
 import com.poids.domain.model.LoggedMeal
 import com.poids.domain.model.RoutePoint
+import com.poids.domain.model.SleepLog
 import com.poids.domain.model.StepDay
+import com.poids.domain.model.SubstanceLog
 import com.poids.domain.model.UserProfile
 import com.poids.domain.model.WeightEntry
 import java.time.Instant
@@ -124,6 +128,26 @@ fun StepDayEntity.toDomain(): StepDay = StepDay(
     steps = steps,
     distanceM = distanceM,
     caloriesKcal = caloriesKcal,
+)
+
+// --- SleepLog / SubstanceLog ---
+
+fun SleepLogEntity.toDomain(): SleepLog = SleepLog(
+    id = id,
+    date = date,
+    bedTime = bedTime,
+    wakeTime = wakeTime,
+    quality = quality,
+    note = note,
+)
+
+fun SubstanceLogEntity.toDomain(): SubstanceLog = SubstanceLog(
+    id = id,
+    dateTime = dateTime,
+    kind = kind,
+    amount = amount,
+    unit = unit,
+    note = note,
 )
 
 // --- LoggedMeal ---

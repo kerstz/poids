@@ -1,34 +1,35 @@
 package com.poids.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.CompositionLocalProvider
 
 /**
- * Thème Material 3. Couleur dynamique (Material You) sur Android 12+ — c'est de
- * l'AOSP, pas du GMS, donc compatible avec le positionnement dégooglisé.
+ * Thème Material 3, direction « Sérénité ». Palette de marque fixe (pas de couleur
+ * dynamique : l'accent bleu unique fait partie de l'identité). Expose les tokens
+ * étendus via [LocalPoidsColors].
  */
 @Composable
 fun PoidsTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColors
-        else -> LightColors
+    val colorScheme = if (darkTheme) DarkColors else LightColors
+    val extraColors = if (darkTheme) DarkExtraColors else LightExtraColors
+
+    CompositionLocalProvider(LocalPoidsColors provides extraColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = PoidsTypography,
+            shapes = PoidsShapes,
+            content = content,
+        )
     }
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = PoidsTypography,
-        content = content,
-    )
+}
+
+/** Accès court aux tokens étendus : `PoidsTheme.extra.teal`. */
+object PoidsTheme {
+    val extra: PoidsExtraColors
+        @Composable get() = LocalPoidsColors.current
 }

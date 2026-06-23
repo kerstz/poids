@@ -49,7 +49,7 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityScreen(
-    onBack: () -> Unit,
+    onBack: (() -> Unit)? = null,
     viewModel: ActivityViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -98,8 +98,10 @@ fun ActivityScreen(
             TopAppBar(
                 title = { Text("Activité") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour")
+                    if (onBack != null) {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour")
+                        }
                     }
                 },
             )
