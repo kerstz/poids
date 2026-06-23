@@ -1,11 +1,17 @@
 package com.poids.data.repository
 
+import com.poids.data.local.entity.ActivitySessionEntity
 import com.poids.data.local.entity.FoodItemEntity
+import com.poids.data.local.entity.RoutePointEntity
+import com.poids.data.local.entity.StepDayEntity
 import com.poids.data.local.entity.UserProfileEntity
 import com.poids.data.local.entity.WeightEntryEntity
 import com.poids.data.local.relation.MealWithFood
+import com.poids.domain.model.ActivitySession
 import com.poids.domain.model.FoodItem
 import com.poids.domain.model.LoggedMeal
+import com.poids.domain.model.RoutePoint
+import com.poids.domain.model.StepDay
 import com.poids.domain.model.UserProfile
 import com.poids.domain.model.WeightEntry
 import java.time.Instant
@@ -71,6 +77,53 @@ fun FoodItemEntity.toDomain(): FoodItem = FoodItem(
     servingSizeG = servingSizeG,
     nutriScore = nutriScore,
     novaGroup = novaGroup,
+)
+
+// --- ActivitySession / RoutePoint ---
+
+fun ActivitySessionEntity.toDomain(): ActivitySession = ActivitySession(
+    id = id,
+    type = type,
+    source = source,
+    startTime = startTime,
+    endTime = endTime,
+    durationSec = durationSec,
+    distanceM = distanceM,
+    avgSpeedMps = avgSpeedMps,
+    elevationGainM = elevationGainM,
+    caloriesKcal = caloriesKcal,
+)
+
+fun ActivitySession.toEntity(): ActivitySessionEntity = ActivitySessionEntity(
+    id = id,
+    type = type,
+    source = source,
+    startTime = startTime,
+    endTime = endTime,
+    durationSec = durationSec,
+    distanceM = distanceM,
+    avgSpeedMps = avgSpeedMps,
+    elevationGainM = elevationGainM,
+    caloriesKcal = caloriesKcal,
+    note = null,
+)
+
+fun RoutePoint.toEntity(sessionId: Long): RoutePointEntity = RoutePointEntity(
+    sessionId = sessionId,
+    lat = lat,
+    lon = lon,
+    altitudeM = altitudeM,
+    speedMps = speedMps,
+    timestamp = timestamp,
+)
+
+// --- StepDay ---
+
+fun StepDayEntity.toDomain(): StepDay = StepDay(
+    date = date,
+    steps = steps,
+    distanceM = distanceM,
+    caloriesKcal = caloriesKcal,
 )
 
 // --- LoggedMeal ---

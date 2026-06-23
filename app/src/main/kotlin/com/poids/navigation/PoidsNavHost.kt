@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.poids.ui.activity.ActivityScreen
 import com.poids.ui.home.HomeScreen
 import com.poids.ui.nutrition.NutritionScreen
 import com.poids.ui.nutrition.addmeal.AddMealScreen
@@ -20,6 +21,7 @@ object Destinations {
     const val HOME = "home"
     const val PROFILE = "profile"
     const val WEIGHT = "weight"
+    const val ACTIVITY = "activity"
     const val NUTRITION = "nutrition"
     const val FOOD_SEARCH = "food_search"
     const val MANUAL_FOOD = "manual_food"
@@ -37,6 +39,7 @@ fun PoidsNavHost(navController: NavHostController = rememberNavController()) {
                 onEditProfile = { navController.navigate(Destinations.PROFILE) },
                 onOpenWeight = { navController.navigate(Destinations.WEIGHT) },
                 onOpenNutrition = { navController.navigate(Destinations.NUTRITION) },
+                onOpenActivity = { navController.navigate(Destinations.ACTIVITY) },
             )
         }
         composable(Destinations.PROFILE) {
@@ -47,6 +50,9 @@ fun PoidsNavHost(navController: NavHostController = rememberNavController()) {
         }
         composable(Destinations.WEIGHT) {
             WeightScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Destinations.ACTIVITY) {
+            ActivityScreen(onBack = { navController.popBackStack() })
         }
         composable(Destinations.NUTRITION) {
             NutritionScreen(
