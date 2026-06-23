@@ -14,7 +14,6 @@ import com.poids.data.local.dao.UserProfileDao
 import com.poids.data.local.dao.WeightDao
 import com.poids.data.local.entity.ActivitySessionEntity
 import com.poids.data.local.entity.FoodItemEntity
-import com.poids.data.local.entity.FoodItemFts
 import com.poids.data.local.entity.MealLogEntity
 import com.poids.data.local.entity.RoutePointEntity
 import com.poids.data.local.entity.SleepLogEntity
@@ -28,7 +27,6 @@ import com.poids.data.local.entity.WeightEntryEntity
         UserProfileEntity::class,
         WeightEntryEntity::class,
         FoodItemEntity::class,
-        FoodItemFts::class,
         MealLogEntity::class,
         ActivitySessionEntity::class,
         RoutePointEntity::class,

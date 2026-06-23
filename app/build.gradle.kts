@@ -78,6 +78,9 @@ dependencies {
     // Images (photos de repas)
     implementation(libs.coil.compose)
 
+    // Scan code-barres (dégooglisé, pas de ML Kit)
+    implementation(libs.zxing.android.embedded)
+
     // Tests JVM
     testImplementation(libs.bundles.test.jvm)
     testRuntimeOnly(libs.junit.platform.launcher)

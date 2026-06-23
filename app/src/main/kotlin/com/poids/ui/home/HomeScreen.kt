@@ -37,6 +37,7 @@ fun HomeScreen(
     onConfigureProfile: () -> Unit,
     onEditProfile: () -> Unit,
     onOpenWeight: () -> Unit,
+    onOpenNutrition: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -58,7 +59,8 @@ fun HomeScreen(
         when (val s = state) {
             HomeUiState.Loading -> Centered(padding) { CircularProgressIndicator() }
             HomeUiState.NoProfile -> Centered(padding) { NoProfileContent(onConfigureProfile) }
-            is HomeUiState.Ready -> ReadyContent(s, onOpenWeight, Modifier.padding(padding))
+            is HomeUiState.Ready ->
+                ReadyContent(s, onOpenWeight, onOpenNutrition, Modifier.padding(padding))
         }
     }
 }
@@ -94,6 +96,7 @@ private fun NoProfileContent(onConfigure: () -> Unit) {
 private fun ReadyContent(
     state: HomeUiState.Ready,
     onOpenWeight: () -> Unit,
+    onOpenNutrition: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -107,8 +110,9 @@ private fun ReadyContent(
 
         SectionCard("Poids") {
             Line("Poids actuel", "$weight kg")
-            Button(onClick = onOpenWeight, modifier = Modifier.padding(top = 8.dp)) {
-                Text("Mes pesées")
+            Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onOpenWeight) { Text("Mes pesées") }
+                Button(onClick = onOpenNutrition) { Text("Nutrition") }
             }
         }
 
