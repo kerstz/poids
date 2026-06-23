@@ -104,6 +104,7 @@ fun HabitsScreen(
     }
     if (showSubstanceDialog) {
         SubstanceEntryDialog(
+            recent = state.recentSubstances,
             onDismiss = { showSubstanceDialog = false },
             onConfirm = { input ->
                 viewModel.addSubstance(input)

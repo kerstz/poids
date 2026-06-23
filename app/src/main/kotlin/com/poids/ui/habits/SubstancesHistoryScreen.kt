@@ -137,6 +137,7 @@ fun SubstancesHistoryScreen(
 
     if (showAdd) {
         SubstanceEntryDialog(
+            recent = state.recent,
             onDismiss = { showAdd = false },
             onConfirm = { input -> viewModel.addSubstance(input); showAdd = false },
         )
@@ -149,7 +150,9 @@ fun SubstancesHistoryScreen(
                 amount = entry.amount,
                 unit = entry.unit,
                 dateTime = entry.dateTime,
+                note = entry.note,
             ),
+            recent = state.recent,
             onDismiss = { editing = null },
             onConfirm = { input -> viewModel.updateSubstance(entry.id, input); editing = null },
         )
@@ -176,6 +179,9 @@ private fun EntryRow(entry: SubstanceLog, onEdit: () -> Unit, onDelete: () -> Un
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                entry.note?.takeIf { it.isNotBlank() }?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall)
+                }
             }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Filled.Delete, contentDescription = "Supprimer")

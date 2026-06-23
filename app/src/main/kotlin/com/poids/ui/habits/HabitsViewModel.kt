@@ -29,6 +29,8 @@ data class HabitsUiState(
     val weightSeries: List<Double> = emptyList(),
     /** Suivi de substances activé dans les réglages. */
     val substanceTrackingEnabled: Boolean = false,
+    /** Substances déjà saisies (nom, unité) pour l'autocomplete. */
+    val recentSubstances: List<Pair<String, String>> = emptyList(),
 )
 
 @HiltViewModel
@@ -60,6 +62,10 @@ class HabitsViewModel @Inject constructor(
             caffeineToday = todaySubs.filter { it.kind == SubstanceKind.CAFFEINE }.sumOf { it.amount },
             weightSeries = weights.reversed().map { it.weightKg },
             substanceTrackingEnabled = settings.substanceTrackingEnabled,
+            recentSubstances = substances
+                .map { displayName(it) to it.unit }
+                .distinctBy { it.first.lowercase() }
+                .take(9),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HabitsUiState())
 
@@ -86,7 +92,7 @@ class HabitsViewModel @Inject constructor(
                 amount = input.amount,
                 unit = input.unit,
                 label = input.name,
-                note = null,
+                note = input.note,
             )
         }
     }
