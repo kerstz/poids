@@ -15,6 +15,7 @@ interface HabitRepository {
 
     // Substances
     fun observeSubstances(): Flow<List<SubstanceLog>>
-    suspend fun addSubstance(dateTime: LocalDateTime, kind: SubstanceKind, amount: Double, unit: String, note: String?): Long
+    suspend fun addSubstance(dateTime: LocalDateTime, kind: SubstanceKind, amount: Double, unit: String, label: String?, note: String?): Long
+    suspend fun updateSubstance(id: Long, dateTime: LocalDateTime, kind: SubstanceKind, amount: Double, unit: String, label: String?): Unit
     suspend fun deleteSubstance(id: Long)
 }

@@ -26,6 +26,7 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): PoidsDatabase =
         Room.databaseBuilder(context, PoidsDatabase::class.java, PoidsDatabase.NAME)
+            .addMigrations(PoidsDatabase.MIGRATION_1_2)
             .build()
 
     @Provides fun provideUserProfileDao(db: PoidsDatabase): UserProfileDao = db.userProfileDao()

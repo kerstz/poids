@@ -64,13 +64,15 @@ fun HabitsScreen(
             onAdd = { showSleepDialog = true },
         )
 
-        SubstancesCard(
-            alcohol = state.alcoholToday,
-            tobacco = state.tobaccoToday,
-            caffeine = state.caffeineToday,
-            onAdd = { showSubstanceDialog = true },
-            onOpenHistory = onOpenSubstances,
-        )
+        if (state.substanceTrackingEnabled) {
+            SubstancesCard(
+                alcohol = state.alcoholToday,
+                tobacco = state.tobaccoToday,
+                caffeine = state.caffeineToday,
+                onAdd = { showSubstanceDialog = true },
+                onOpenHistory = onOpenSubstances,
+            )
+        }
 
         PoidsCard(modifier = Modifier.fillMaxWidth()) {
             Text("Tendance poids", style = MaterialTheme.typography.titleMedium)
@@ -101,10 +103,10 @@ fun HabitsScreen(
         )
     }
     if (showSubstanceDialog) {
-        AddSubstanceDialog(
+        SubstanceEntryDialog(
             onDismiss = { showSubstanceDialog = false },
-            onConfirm = { kind, amount, unit ->
-                viewModel.addSubstance(kind, amount, unit)
+            onConfirm = { input ->
+                viewModel.addSubstance(input)
                 showSubstanceDialog = false
             },
         )

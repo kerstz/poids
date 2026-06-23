@@ -27,6 +27,22 @@ interface SubstanceDao {
     @Insert
     suspend fun insert(entry: SubstanceLogEntity): Long
 
+    @Query(
+        """
+        UPDATE substance_log
+        SET dateTime = :dateTime, kind = :kind, amount = :amount, unit = :unit, label = :label
+        WHERE id = :id
+        """,
+    )
+    suspend fun update(
+        id: Long,
+        dateTime: java.time.LocalDateTime,
+        kind: com.poids.domain.model.SubstanceKind,
+        amount: Double,
+        unit: String,
+        label: String?,
+    )
+
     @Query("DELETE FROM substance_log WHERE id = :id")
     suspend fun deleteById(id: Long)
 

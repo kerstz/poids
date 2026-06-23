@@ -11,19 +11,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 import javax.inject.Inject
 
 data class SubstanceHistoryUiState(
-    /** Par type : 12 valeurs mensuelles (du plus ancien au plus récent). */
-    val monthly: Map<SubstanceKind, List<Float>> = emptyMap(),
+    /** Noms de substances présents, du plus fréquent au moins fréquent. */
+    val names: List<String> = emptyList(),
     val monthLabels: List<String> = emptyList(),
-    /** Totaux par type pour le mois et l'année en cours. */
-    val totalThisMonth: Map<SubstanceKind, Double> = emptyMap(),
-    val totalThisYear: Map<SubstanceKind, Double> = emptyMap(),
+    /** Par nom : dose cumulée sur 12 mois (ancien → récent). */
+    val monthlyByName: Map<String, List<Float>> = emptyMap(),
+    val totalMonthByName: Map<String, Double> = emptyMap(),
+    val totalYearByName: Map<String, Double> = emptyMap(),
     val entries: List<SubstanceLog> = emptyList(),
 )
 
@@ -32,7 +32,6 @@ class SubstanceHistoryViewModel @Inject constructor(
     private val habitRepository: HabitRepository,
 ) : ViewModel() {
 
-    private val kinds = listOf(SubstanceKind.ALCOHOL, SubstanceKind.TOBACCO, SubstanceKind.CAFFEINE)
     private val currentMonth: YearMonth = YearMonth.now()
 
     val uiState: StateFlow<SubstanceHistoryUiState> = habitRepository.observeSubstances()
@@ -41,33 +40,45 @@ class SubstanceHistoryViewModel @Inject constructor(
 
     private fun aggregate(all: List<SubstanceLog>): SubstanceHistoryUiState {
         val months = (0..11).map { currentMonth.minusMonths((11 - it).toLong()) }
-        val byMonthKind = all.groupBy { YearMonth.from(it.dateTime) to it.kind }
+        val named = all.map { it to displayName(it) }
 
-        val monthly = kinds.associateWith { kind ->
+        val names = named.groupingBy { it.second }.eachCount()
+            .entries.sortedByDescending { it.value }.map { it.key }
+
+        val monthlyByName = names.associateWith { name ->
             months.map { ym ->
-                byMonthKind[ym to kind].orEmpty().sumOf { it.amount }.toFloat()
+                named.filter { it.second == name && YearMonth.from(it.first.dateTime) == ym }
+                    .sumOf { it.first.amount }.toFloat()
             }
         }
         val thisYear = currentMonth.year
         return SubstanceHistoryUiState(
-            monthly = monthly,
-            monthLabels = months.map {
-                it.month.getDisplayName(TextStyle.SHORT, Locale.FRENCH).take(4)
+            names = names,
+            monthLabels = months.map { it.month.getDisplayName(TextStyle.SHORT, Locale.FRENCH).take(4) },
+            monthlyByName = monthlyByName,
+            totalMonthByName = names.associateWith { name ->
+                named.filter { it.second == name && YearMonth.from(it.first.dateTime) == currentMonth }
+                    .sumOf { it.first.amount }
             },
-            totalThisMonth = kinds.associateWith { kind ->
-                all.filter { it.kind == kind && YearMonth.from(it.dateTime) == currentMonth }
-                    .sumOf { it.amount }
-            },
-            totalThisYear = kinds.associateWith { kind ->
-                all.filter { it.kind == kind && it.dateTime.year == thisYear }.sumOf { it.amount }
+            totalYearByName = names.associateWith { name ->
+                named.filter { it.second == name && it.first.dateTime.year == thisYear }
+                    .sumOf { it.first.amount }
             },
             entries = all,
         )
     }
 
-    fun addSubstance(kind: SubstanceKind, amount: Double, unit: String, dateTime: LocalDateTime = LocalDateTime.now()) {
+    fun addSubstance(input: SubstanceEntryInput) {
         viewModelScope.launch {
-            habitRepository.addSubstance(dateTime, kind, amount, unit, null)
+            habitRepository.addSubstance(
+                input.dateTime, input.kind, input.amount, input.unit, input.name, null,
+            )
+        }
+    }
+
+    fun updateSubstance(id: Long, input: SubstanceEntryInput) {
+        viewModelScope.launch {
+            habitRepository.updateSubstance(id, input.dateTime, input.kind, input.amount, input.unit, input.name)
         }
     }
 
@@ -75,3 +86,12 @@ class SubstanceHistoryViewModel @Inject constructor(
         viewModelScope.launch { habitRepository.deleteSubstance(id) }
     }
 }
+
+/** Nom affiché d'une conso : nom libre si présent, sinon libellé de catégorie. */
+fun displayName(log: SubstanceLog): String =
+    log.label?.takeIf { it.isNotBlank() } ?: when (log.kind) {
+        SubstanceKind.ALCOHOL -> "Alcool"
+        SubstanceKind.TOBACCO -> "Tabac"
+        SubstanceKind.CAFFEINE -> "Café"
+        SubstanceKind.OTHER -> "Autre"
+    }

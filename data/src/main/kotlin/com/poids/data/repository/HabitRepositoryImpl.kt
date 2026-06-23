@@ -50,6 +50,7 @@ class HabitRepositoryImpl @Inject constructor(
         kind: SubstanceKind,
         amount: Double,
         unit: String,
+        label: String?,
         note: String?,
     ): Long = substanceDao.insert(
         SubstanceLogEntity(
@@ -58,8 +59,18 @@ class HabitRepositoryImpl @Inject constructor(
             amount = amount,
             unit = unit,
             note = note,
+            label = label,
         ),
     )
+
+    override suspend fun updateSubstance(
+        id: Long,
+        dateTime: LocalDateTime,
+        kind: SubstanceKind,
+        amount: Double,
+        unit: String,
+        label: String?,
+    ) = substanceDao.update(id, dateTime, kind, amount, unit, label)
 
     override suspend fun deleteSubstance(id: Long) = substanceDao.deleteById(id)
 }
