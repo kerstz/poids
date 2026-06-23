@@ -12,9 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.poids.R
 import com.poids.settings.SubstanceTrackingViewModel
 import com.poids.ui.components.PoidsCard
 
@@ -29,9 +31,9 @@ fun SubstanceTrackingSection(viewModel: SubstanceTrackingViewModel = hiltViewMod
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.padding(end = 12.dp)) {
-                Text("Suivi de substances", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.settings_substance_tracking), style = MaterialTheme.typography.titleMedium)
                 Text(
-                    "Journal de conso (substance, dose, heure). 100 % local, données sensibles.",
+                    stringResource(R.string.settings_substance_tracking_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
