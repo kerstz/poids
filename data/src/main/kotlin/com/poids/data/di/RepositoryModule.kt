@@ -3,6 +3,7 @@ package com.poids.data.di
 import com.poids.data.repository.ActivityRepositoryImpl
 import com.poids.data.repository.DailyEnergyRepositoryImpl
 import com.poids.data.repository.FoodRepositoryImpl
+import com.poids.data.repository.HabitRepositoryImpl
 import com.poids.data.repository.MealRepositoryImpl
 import com.poids.data.repository.ProfileRepositoryImpl
 import com.poids.data.repository.StepRepositoryImpl
@@ -10,6 +11,7 @@ import com.poids.data.repository.WeightRepositoryImpl
 import com.poids.domain.repository.ActivityRepository
 import com.poids.domain.repository.DailyEnergyRepository
 import com.poids.domain.repository.FoodRepository
+import com.poids.domain.repository.HabitRepository
 import com.poids.domain.repository.MealRepository
 import com.poids.domain.repository.ProfileRepository
 import com.poids.domain.repository.StepRepository
@@ -56,4 +58,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindActivityRepository(impl: ActivityRepositoryImpl): ActivityRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindHabitRepository(impl: HabitRepositoryImpl): HabitRepository
 }

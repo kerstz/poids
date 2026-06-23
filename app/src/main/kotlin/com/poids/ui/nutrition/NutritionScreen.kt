@@ -48,10 +48,10 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NutritionScreen(
-    onBack: () -> Unit,
     onSearch: () -> Unit,
     onManual: () -> Unit,
     onAddMeal: (foodId: Long) -> Unit,
+    onBack: (() -> Unit)? = null,
     viewModel: NutritionViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -78,8 +78,10 @@ fun NutritionScreen(
             TopAppBar(
                 title = { Text("Nutrition") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour")
+                    if (onBack != null) {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour")
+                        }
                     }
                 },
             )
