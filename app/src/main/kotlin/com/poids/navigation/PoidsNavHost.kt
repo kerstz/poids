@@ -32,6 +32,7 @@ import com.poids.ui.nutrition.manual.ManualFoodScreen
 import com.poids.ui.nutrition.search.FoodSearchScreen
 import com.poids.ui.profile.ProfileScreen
 import com.poids.ui.profile.ProfileViewScreen
+import com.poids.ui.trends.TrendsScreen
 import com.poids.ui.weight.WeightScreen
 
 object Destinations {
@@ -45,6 +46,7 @@ object Destinations {
     // Détails (poussés par-dessus)
     const val PROFILE_EDIT = "profile_edit"
     const val WEIGHT = "weight"
+    const val TRENDS = "trends"
     const val FOOD_SEARCH = "food_search"
     const val MANUAL_FOOD = "manual_food"
     const val ADD_MEAL = "add_meal/{foodId}"
@@ -115,6 +117,7 @@ fun PoidsNavHost(navController: NavHostController = rememberNavController()) {
                 ProfileViewScreen(
                     onEdit = { navController.navigate(Destinations.PROFILE_EDIT) },
                     onOpenWeight = { navController.navigate(Destinations.WEIGHT) },
+                    onOpenTrends = { navController.navigate(Destinations.TRENDS) },
                 )
             }
 
@@ -126,6 +129,9 @@ fun PoidsNavHost(navController: NavHostController = rememberNavController()) {
             }
             composable(Destinations.WEIGHT) {
                 WeightScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Destinations.TRENDS) {
+                TrendsScreen(onBack = { navController.popBackStack() })
             }
             composable(Destinations.FOOD_SEARCH) {
                 FoodSearchScreen(

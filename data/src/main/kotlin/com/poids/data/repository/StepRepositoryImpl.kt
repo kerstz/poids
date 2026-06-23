@@ -32,6 +32,9 @@ class StepRepositoryImpl @Inject constructor(
         return stepDao.observeDay(today).map { it?.toDomain() ?: StepDay(today, 0, 0.0, 0.0) }
     }
 
+    override fun observeRange(start: LocalDate, end: LocalDate): Flow<List<StepDay>> =
+        stepDao.observeRange(start, end).map { list -> list.map { it.toDomain() } }
+
     override suspend fun trackUntilCancelled() {
         counter.counterFlow().collect { raw ->
             val today = LocalDate.now()

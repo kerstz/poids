@@ -10,6 +10,9 @@ interface StepRepository {
     /** Pas du jour (0 si rien encore). */
     fun observeToday(): Flow<StepDay>
 
+    /** Pas sur un intervalle (jours présents en base, du plus ancien au plus récent). */
+    fun observeRange(start: java.time.LocalDate, end: java.time.LocalDate): Flow<List<StepDay>>
+
     /**
      * Collecte le compteur matériel et persiste le total du jour, en gérant le
      * passage à minuit et les reboots (compteur cumulatif remis à 0 au boot).
