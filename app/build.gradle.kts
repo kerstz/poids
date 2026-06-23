@@ -70,6 +70,9 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
+    // Rappels planifiés (pesée quotidienne)
+    implementation(libs.androidx.work.runtime.ktx)
+
     // DI
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
