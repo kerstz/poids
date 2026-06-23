@@ -16,7 +16,7 @@ data class SleepLog(
     val durationMin: Int get() = Duration.between(bedTime, wakeTime).toMinutes().toInt()
 }
 
-/** Consommation de substance. */
+/** Consommation de substance. `label` = nom libre (suivi de conso) si renseigné. */
 data class SubstanceLog(
     val id: Long = 0L,
     val dateTime: LocalDateTime,
@@ -24,4 +24,5 @@ data class SubstanceLog(
     val amount: Double,
     val unit: String,
     val note: String? = null,
+    val label: String? = null,
 )

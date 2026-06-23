@@ -63,64 +63,7 @@ fun AddSleepDialog(
     )
 }
 
-@Composable
-fun AddSubstanceDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (kind: SubstanceKind, amount: Double, unit: String) -> Unit,
-) {
-    val kinds = listOf(SubstanceKind.ALCOHOL, SubstanceKind.TOBACCO, SubstanceKind.CAFFEINE)
-    var kind by remember { mutableStateOf(SubstanceKind.CAFFEINE) }
-    var amount by remember { mutableStateOf("1") }
-    var error by remember { mutableStateOf<String?>(null) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Consommation") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                SegmentedSelector(
-                    options = kinds,
-                    selected = kind,
-                    onSelect = { kind = it },
-                    label = ::substanceLabel,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = amount,
-                    onValueChange = { amount = it; error = null },
-                    label = { Text("Quantité (${unitFor(kind)})") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                val a = amount.trim().replace(',', '.').toDoubleOrNull()
-                if (a == null || a < 0) error = "Quantité invalide." else onConfirm(kind, a, unitFor(kind))
-            }) { Text("Ajouter") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Annuler") } },
-    )
-}
-
 private fun parseTime(value: String): LocalTime? = runCatching {
     val parts = value.trim().split(":")
     LocalTime.of(parts[0].toInt(), parts[1].toInt())
 }.getOrNull()
-
-private fun substanceLabel(kind: SubstanceKind): String = when (kind) {
-    SubstanceKind.ALCOHOL -> "Alcool"
-    SubstanceKind.TOBACCO -> "Tabac"
-    SubstanceKind.CAFFEINE -> "Café"
-    SubstanceKind.OTHER -> "Autre"
-}
-
-private fun unitFor(kind: SubstanceKind): String = when (kind) {
-    SubstanceKind.ALCOHOL -> "verres"
-    SubstanceKind.TOBACCO -> "cig."
-    SubstanceKind.CAFFEINE -> "tasses"
-    SubstanceKind.OTHER -> "unités"
-}

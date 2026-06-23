@@ -148,6 +148,7 @@ fun SubstanceLogEntity.toDomain(): SubstanceLog = SubstanceLog(
     amount = amount,
     unit = unit,
     note = note,
+    label = label,
 )
 
 // --- LoggedMeal ---

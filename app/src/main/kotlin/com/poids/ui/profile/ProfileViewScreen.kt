@@ -129,6 +129,9 @@ private fun ReadyProfile(
     // Rappel de pesée (configurable)
     ReminderSection()
 
+    // Suivi de substances (optionnel)
+    SubstanceTrackingSection()
+
     // Bannière vie privée
     Box(
         modifier = Modifier

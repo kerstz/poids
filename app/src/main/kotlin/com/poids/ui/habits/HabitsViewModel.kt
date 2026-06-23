@@ -6,6 +6,7 @@ import com.poids.domain.model.SleepLog
 import com.poids.domain.model.SubstanceKind
 import com.poids.domain.repository.HabitRepository
 import com.poids.domain.repository.WeightRepository
+import com.poids.settings.SettingsPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,12 +27,15 @@ data class HabitsUiState(
     val caffeineToday: Double = 0.0,
     /** Poids chronologiques pour la mini-tendance. */
     val weightSeries: List<Double> = emptyList(),
+    /** Suivi de substances activé dans les réglages. */
+    val substanceTrackingEnabled: Boolean = false,
 )
 
 @HiltViewModel
 class HabitsViewModel @Inject constructor(
     private val habitRepository: HabitRepository,
     weightRepository: WeightRepository,
+    settingsPreferences: SettingsPreferences,
 ) : ViewModel() {
 
     private val today: LocalDate = LocalDate.now()
@@ -41,7 +45,8 @@ class HabitsViewModel @Inject constructor(
         habitRepository.observeSleep(weekStart, today),
         habitRepository.observeSubstances(),
         weightRepository.observeAll(),
-    ) { sleep, substances, weights ->
+        settingsPreferences.settings,
+    ) { sleep, substances, weights, settings ->
         val byDate = sleep.associateBy { it.date }
         val last7 = (0..6).map { offset ->
             byDate[weekStart.plusDays(offset.toLong())]?.durationMin ?: 0
@@ -54,6 +59,7 @@ class HabitsViewModel @Inject constructor(
             tobaccoToday = todaySubs.filter { it.kind == SubstanceKind.TOBACCO }.sumOf { it.amount },
             caffeineToday = todaySubs.filter { it.kind == SubstanceKind.CAFFEINE }.sumOf { it.amount },
             weightSeries = weights.reversed().map { it.weightKg },
+            substanceTrackingEnabled = settings.substanceTrackingEnabled,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HabitsUiState())
 
@@ -72,9 +78,16 @@ class HabitsViewModel @Inject constructor(
         }
     }
 
-    fun addSubstance(kind: SubstanceKind, amount: Double, unit: String) {
+    fun addSubstance(input: SubstanceEntryInput) {
         viewModelScope.launch {
-            habitRepository.addSubstance(LocalDateTime.now(), kind, amount, unit, null)
+            habitRepository.addSubstance(
+                dateTime = input.dateTime,
+                kind = input.kind,
+                amount = input.amount,
+                unit = input.unit,
+                label = input.name,
+                note = null,
+            )
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.poids.ui.habits
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,11 +11,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,6 +26,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,11 +36,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.poids.domain.model.SubstanceKind
 import com.poids.domain.model.SubstanceLog
 import com.poids.ui.components.BarChart
 import com.poids.ui.components.PoidsCard
-import com.poids.ui.components.SegmentedSelector
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,15 +48,18 @@ fun SubstancesHistoryScreen(
     viewModel: SubstanceHistoryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    var selectedKind by remember { mutableStateOf(SubstanceKind.CAFFEINE) }
+    var selectedName by remember { mutableStateOf<String?>(null) }
     var showAdd by remember { mutableStateOf(false) }
+    var editing by remember { mutableStateOf<SubstanceLog?>(null) }
 
-    val kinds = listOf(SubstanceKind.ALCOHOL, SubstanceKind.TOBACCO, SubstanceKind.CAFFEINE)
+    LaunchedEffect(state.names) {
+        if (selectedName !in state.names) selectedName = state.names.firstOrNull()
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Substances") },
+                title = { Text("Suivi de conso") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour")
@@ -62,80 +69,98 @@ fun SubstancesHistoryScreen(
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAdd = true }) {
-                Icon(Icons.Filled.Add, contentDescription = "Enregistrer")
+                Icon(Icons.Filled.Add, contentDescription = "Ajouter")
             }
         },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
+            modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(18.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            item {
-                SegmentedSelector(
-                    options = kinds,
-                    selected = selectedKind,
-                    onSelect = { selectedKind = it },
-                    label = ::kindLabel,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-
-            item {
-                PoidsCard(modifier = Modifier.fillMaxWidth()) {
-                    val month = state.totalThisMonth[selectedKind] ?: 0.0
-                    val year = state.totalThisYear[selectedKind] ?: 0.0
-                    Text("${kindLabel(selectedKind)} · 12 mois", style = MaterialTheme.typography.titleMedium)
+            if (state.names.isEmpty()) {
+                item {
                     Text(
-                        "Ce mois : ${fmt(month)} · Cette année : ${fmt(year)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 2.dp),
+                        "Aucune conso enregistrée. Touche + pour ajouter (substance, dose, heure).",
+                        style = MaterialTheme.typography.bodyLarge,
                     )
-                    val values = state.monthly[selectedKind].orEmpty()
-                    if (values.any { it > 0f }) {
-                        BarChart(
-                            values = values,
-                            labels = state.monthLabels,
-                            barColor = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.fillMaxWidth().height(130.dp).padding(top = 12.dp),
-                            barAreaHeightDp = 100,
-                        )
-                    } else {
-                        Text(
-                            "Aucune conso enregistrée sur 12 mois.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 12.dp),
-                        )
+                }
+            } else {
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        state.names.forEach { name ->
+                            FilterChip(
+                                selected = selectedName == name,
+                                onClick = { selectedName = name },
+                                label = { Text(name) },
+                            )
+                        }
                     }
                 }
-            }
-
-            item { Text("Historique", style = MaterialTheme.typography.titleMedium) }
-
-            items(state.entries, key = { it.id }) { entry ->
-                SubstanceEntryRow(entry, onDelete = { viewModel.delete(entry.id) })
+                item {
+                    val name = selectedName
+                    PoidsCard(modifier = Modifier.fillMaxWidth()) {
+                        Text("${name ?: ""} · 12 mois", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            "Ce mois : ${fmt(state.totalMonthByName[name] ?: 0.0)} · " +
+                                "Cette année : ${fmt(state.totalYearByName[name] ?: 0.0)}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 2.dp),
+                        )
+                        val values = state.monthlyByName[name].orEmpty()
+                        if (values.any { it > 0f }) {
+                            BarChart(
+                                values = values,
+                                labels = state.monthLabels,
+                                barColor = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.fillMaxWidth().height(130.dp).padding(top = 12.dp),
+                                barAreaHeightDp = 100,
+                            )
+                        }
+                    }
+                }
+                item { Text("Historique", style = MaterialTheme.typography.titleMedium) }
+                items(state.entries, key = { it.id }) { entry ->
+                    EntryRow(
+                        entry = entry,
+                        onEdit = { editing = entry },
+                        onDelete = { viewModel.delete(entry.id) },
+                    )
+                }
             }
         }
     }
 
     if (showAdd) {
-        AddSubstanceDialog(
+        SubstanceEntryDialog(
             onDismiss = { showAdd = false },
-            onConfirm = { kind, amount, unit ->
-                viewModel.addSubstance(kind, amount, unit)
-                showAdd = false
-            },
+            onConfirm = { input -> viewModel.addSubstance(input); showAdd = false },
+        )
+    }
+    editing?.let { entry ->
+        SubstanceEntryDialog(
+            initial = SubstanceEntryInput(
+                name = displayName(entry),
+                kind = entry.kind,
+                amount = entry.amount,
+                unit = entry.unit,
+                dateTime = entry.dateTime,
+            ),
+            onDismiss = { editing = null },
+            onConfirm = { input -> viewModel.updateSubstance(entry.id, input); editing = null },
         )
     }
 }
 
+private val dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy · HH:mm")
+
 @Composable
-private fun SubstanceEntryRow(entry: SubstanceLog, onDelete: () -> Unit) {
-    PoidsCard(modifier = Modifier.fillMaxWidth(), padding = 0) {
+private fun EntryRow(entry: SubstanceLog, onEdit: () -> Unit, onDelete: () -> Unit) {
+    PoidsCard(modifier = Modifier.fillMaxWidth().clickable(onClick = onEdit), padding = 0) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -143,11 +168,11 @@ private fun SubstanceEntryRow(entry: SubstanceLog, onDelete: () -> Unit) {
         ) {
             Column {
                 Text(
-                    "${kindLabel(entry.kind)} · ${fmt(entry.amount)} ${entry.unit}",
+                    "${displayName(entry)} · ${fmt(entry.amount)} ${entry.unit}",
                     style = MaterialTheme.typography.bodyLarge,
                 )
                 Text(
-                    entry.dateTime.toLocalDate().toString(),
+                    entry.dateTime.format(dateFmt),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -157,13 +182,6 @@ private fun SubstanceEntryRow(entry: SubstanceLog, onDelete: () -> Unit) {
             }
         }
     }
-}
-
-private fun kindLabel(kind: SubstanceKind): String = when (kind) {
-    SubstanceKind.ALCOHOL -> "Alcool"
-    SubstanceKind.TOBACCO -> "Tabac"
-    SubstanceKind.CAFFEINE -> "Café"
-    SubstanceKind.OTHER -> "Autre"
 }
 
 private fun fmt(value: Double): String =

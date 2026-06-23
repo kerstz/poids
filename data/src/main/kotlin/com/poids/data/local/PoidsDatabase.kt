@@ -3,6 +3,8 @@ package com.poids.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.poids.data.local.converter.Converters
 import com.poids.data.local.dao.ActivityDao
 import com.poids.data.local.dao.FoodItemDao
@@ -34,7 +36,7 @@ import com.poids.data.local.entity.WeightEntryEntity
         SleepLogEntity::class,
         SubstanceLogEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -50,5 +52,12 @@ abstract class PoidsDatabase : RoomDatabase() {
 
     companion object {
         const val NAME = "poids.db"
+
+        /** v2 : ajout du nom libre de substance (suivi de conso). */
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE substance_log ADD COLUMN label TEXT")
+            }
+        }
     }
 }
