@@ -34,6 +34,7 @@ import kotlin.math.roundToInt
 fun ProfileViewScreen(
     onEdit: () -> Unit,
     onOpenWeight: () -> Unit,
+    onOpenTrends: () -> Unit,
     viewModel: ProfileSummaryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -57,7 +58,7 @@ fun ProfileViewScreen(
                 )
                 PrimaryButton("Configurer mon profil", onEdit)
             }
-            is ProfileSummaryState.Ready -> ReadyProfile(s, onEdit, onOpenWeight)
+            is ProfileSummaryState.Ready -> ReadyProfile(s, onEdit, onOpenWeight, onOpenTrends)
         }
     }
 }
@@ -67,6 +68,7 @@ private fun ReadyProfile(
     state: ProfileSummaryState.Ready,
     onEdit: () -> Unit,
     onOpenWeight: () -> Unit,
+    onOpenTrends: () -> Unit,
 ) {
     val weight = state.latestWeight?.weightKg ?: state.profile.weightKg
 
@@ -121,6 +123,7 @@ private fun ReadyProfile(
     PoidsCard(modifier = Modifier.fillMaxWidth(), padding = 0) {
         SettingRow("Modifier le profil", onEdit)
         SettingRow("Mes pesées", onOpenWeight)
+        SettingRow("Tendances", onOpenTrends)
     }
 
     // Bannière vie privée
