@@ -37,6 +37,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.Poids"
+        android:localeConfig="@xml/locales_config"
         tools:targetApi="31">
 
         <activity
@@ -53,5 +54,15 @@
             android:name=".tracking.ActivityTrackingService"
             android:exported="false"
             android:foregroundServiceType="location" />
+
+        <!-- Persiste la langue choisie (AppCompat per-app locales). -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
     </application>
 </manifest>

@@ -16,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import com.poids.R
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -56,14 +58,14 @@ object Destinations {
     fun addMeal(foodId: Long) = "add_meal/$foodId"
 }
 
-private data class Tab(val route: String, val label: String, val icon: ImageVector)
+private data class Tab(val route: String, val labelRes: Int, val icon: ImageVector)
 
 private val tabs = listOf(
-    Tab(Destinations.HOME, "Bilan", Icons.Filled.Home),
-    Tab(Destinations.ACTIVITY, "Activité", Icons.Filled.DirectionsRun),
-    Tab(Destinations.NUTRITION, "Nutrition", Icons.Filled.Restaurant),
-    Tab(Destinations.HABITS, "Habitudes", Icons.Filled.Bedtime),
-    Tab(Destinations.PROFILE, "Profil", Icons.Filled.Person),
+    Tab(Destinations.HOME, R.string.tab_summary, Icons.Filled.Home),
+    Tab(Destinations.ACTIVITY, R.string.tab_activity, Icons.Filled.DirectionsRun),
+    Tab(Destinations.NUTRITION, R.string.tab_nutrition, Icons.Filled.Restaurant),
+    Tab(Destinations.HABITS, R.string.tab_habits, Icons.Filled.Bedtime),
+    Tab(Destinations.PROFILE, R.string.tab_profile, Icons.Filled.Person),
 )
 
 private val topLevelRoutes = tabs.map { it.route }.toSet()
@@ -87,8 +89,8 @@ fun PoidsNavHost(navController: NavHostController = rememberNavController()) {
                                     restoreState = true
                                 }
                             },
-                            icon = { Icon(tab.icon, contentDescription = tab.label) },
-                            label = { Text(tab.label) },
+                            icon = { Icon(tab.icon, contentDescription = stringResource(tab.labelRes)) },
+                            label = { Text(stringResource(tab.labelRes)) },
                         )
                     }
                 }

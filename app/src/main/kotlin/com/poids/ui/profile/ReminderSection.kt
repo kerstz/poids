@@ -18,9 +18,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.poids.R
 import com.poids.reminder.ReminderSettingsViewModel
 import com.poids.ui.components.PoidsCard
 
@@ -36,12 +38,12 @@ fun ReminderSection(viewModel: ReminderSettingsViewModel = hiltViewModel()) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column {
-                Text("Rappel de pesée", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.settings_reminder), style = MaterialTheme.typography.titleMedium)
                 Text(
                     if (config.enabled) {
-                        "Tous les jours à %02d:%02d".format(config.hour, config.minute)
+                        stringResource(R.string.settings_reminder_daily_at, "%02d:%02d".format(config.hour, config.minute))
                     } else {
-                        "Désactivé"
+                        stringResource(R.string.settings_reminder_disabled)
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -51,7 +53,7 @@ fun ReminderSection(viewModel: ReminderSettingsViewModel = hiltViewModel()) {
         }
         if (config.enabled) {
             TextButton(onClick = { showTimeDialog = true }, modifier = Modifier.padding(top = 4.dp)) {
-                Text("Changer l'heure")
+                Text(stringResource(R.string.settings_reminder_change_time))
             }
         }
     }

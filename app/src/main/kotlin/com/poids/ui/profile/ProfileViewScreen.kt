@@ -19,10 +19,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.poids.R
 import com.poids.domain.model.Sex
 import com.poids.ui.components.PoidsCard
 import com.poids.ui.components.PrimaryButton
@@ -85,9 +87,12 @@ private fun ReadyProfile(
             )
         }
         Column {
-            Text("Mon profil", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.profile_title), style = MaterialTheme.typography.titleLarge)
+            val sexLabel = stringResource(
+                if (state.profile.sex == Sex.FEMALE) R.string.sex_female else R.string.sex_male,
+            )
             Text(
-                "${state.ageYears} ans · ${if (state.profile.sex == Sex.FEMALE) "Femme" else "Homme"}",
+                stringResource(R.string.profile_age_sex, state.ageYears, sexLabel),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -96,10 +101,10 @@ private fun ReadyProfile(
 
     // Tuiles
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-        StatTile("Taille", "${state.profile.heightCm.roundToInt()} cm", Modifier.weight(1f))
-        StatTile("Poids", "$weight kg", Modifier.weight(1f))
+        StatTile(stringResource(R.string.stat_height), "${state.profile.heightCm.roundToInt()} cm", Modifier.weight(1f))
+        StatTile(stringResource(R.string.stat_weight), "$weight kg", Modifier.weight(1f))
         StatTile(
-            "Objectif",
+            stringResource(R.string.stat_target),
             state.profile.targetWeightKg?.let { "${it.roundToInt()}" } ?: "—",
             Modifier.weight(1f),
             valueColor = MaterialTheme.colorScheme.primary,
@@ -108,11 +113,11 @@ private fun ReadyProfile(
 
     // Énergie
     PoidsCard(modifier = Modifier.fillMaxWidth()) {
-        Text("Énergie", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.profile_energy), style = MaterialTheme.typography.titleMedium)
         EnergyRow("BMR", "${state.targets.bmr.roundToInt()} kcal")
         EnergyRow("TDEE", "${state.targets.tdee.roundToInt()} kcal")
         EnergyRow(
-            "Déficit cible / jour",
+            stringResource(R.string.profile_deficit_target),
             "${state.targets.dailyDeltaKcal.roundToInt()} kcal",
             valueColor = MaterialTheme.colorScheme.primary,
             bold = true,
@@ -121,9 +126,9 @@ private fun ReadyProfile(
 
     // Réglages
     PoidsCard(modifier = Modifier.fillMaxWidth(), padding = 0) {
-        SettingRow("Modifier le profil", onEdit)
-        SettingRow("Mes pesées", onOpenWeight)
-        SettingRow("Tendances", onOpenTrends)
+        SettingRow(stringResource(R.string.profile_edit), onEdit)
+        SettingRow(stringResource(R.string.profile_my_weights), onOpenWeight)
+        SettingRow(stringResource(R.string.profile_trends), onOpenTrends)
     }
 
     // Rappel de pesée (configurable)
@@ -131,6 +136,9 @@ private fun ReadyProfile(
 
     // Suivi de substances (optionnel)
     SubstanceTrackingSection()
+
+    // Langue
+    LanguageSection()
 
     // Bannière vie privée
     Box(
@@ -140,7 +148,7 @@ private fun ReadyProfile(
             .padding(16.dp),
     ) {
         Text(
-            "100 % hors-ligne · toutes tes données restent sur l'appareil",
+            stringResource(R.string.profile_privacy_banner),
             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
             color = PoidsTheme.extra.onSuccessContainer,
         )
