@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Thème de fenêtre (avant que Compose ne prenne le relais). Barres système
+         transparentes pour l'edge-to-edge. Le rendu réel des couleurs est géré par
+         PoidsTheme (Material 3) côté Compose. -->
+    <style name="Theme.Poids" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>

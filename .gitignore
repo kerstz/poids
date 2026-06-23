@@ -1,0 +1,26 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Local config (chemins machine, clés)
+local.properties
+keystore.properties
+*.jks
+*.keystore
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# Outils MCP (sessions de navigation jetables)
+.playwright-mcp/
