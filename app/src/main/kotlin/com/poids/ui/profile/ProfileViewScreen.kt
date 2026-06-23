@@ -126,6 +126,9 @@ private fun ReadyProfile(
         SettingRow("Tendances", onOpenTrends)
     }
 
+    // Rappel de pesée (configurable)
+    ReminderSection()
+
     // Bannière vie privée
     Box(
         modifier = Modifier

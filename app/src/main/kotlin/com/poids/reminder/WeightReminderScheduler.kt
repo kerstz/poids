@@ -9,15 +9,14 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.concurrent.TimeUnit
 
-/** Planifie un rappel de pesée quotidien (par défaut 08:00). */
+/** Planifie un rappel de pesée quotidien à l'heure donnée. */
 object WeightReminderScheduler {
 
     private const val WORK_NAME = "weight_reminder_daily"
-    private val REMINDER_TIME: LocalTime = LocalTime.of(8, 0)
 
-    fun schedule(context: Context) {
+    fun schedule(context: Context, hour: Int = 8, minute: Int = 0) {
         val now = LocalDateTime.now()
-        var next = now.toLocalDate().atTime(REMINDER_TIME)
+        var next = now.toLocalDate().atTime(LocalTime.of(hour, minute))
         if (!next.isAfter(now)) next = next.plusDays(1)
         val initialDelayMs = Duration.between(now, next).toMillis()
 
