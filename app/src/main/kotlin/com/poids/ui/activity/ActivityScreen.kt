@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
@@ -24,9 +25,11 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,6 +60,7 @@ fun ActivityScreen(
     val sessions by viewModel.sessions.collectAsStateWithLifecycle()
     val live by viewModel.liveStats.collectAsStateWithLifecycle()
     var selectedType by remember { mutableStateOf(ActivityType.WALKING) }
+    var showManualDialog by remember { mutableStateOf(false) }
 
     val stepPermLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
@@ -123,11 +127,23 @@ fun ActivityScreen(
                 onStart = ::startGps,
                 onStop = viewModel::stopGps,
             )
+            ManualEffortCard(onAdd = { showManualDialog = true })
             if (sessions.isNotEmpty()) {
                 Text("Historique", style = MaterialTheme.typography.titleLarge)
                 sessions.forEach { SessionRow(it) }
             }
         }
+    }
+
+    if (showManualDialog) {
+        ManualEffortDialog(
+            estimateKcal = viewModel::estimateKcal,
+            onDismiss = { showManualDialog = false },
+            onConfirm = { type, durationSec, kcal ->
+                viewModel.addManualActivity(type, durationSec, kcal)
+                showManualDialog = false
+            },
+        )
     }
 }
 
@@ -221,14 +237,92 @@ private fun ActivityTypeDropdown(selected: ActivityType, onSelected: (ActivityTy
 }
 
 @Composable
+private fun ManualEffortCard(onAdd: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text("Effort manuel", style = MaterialTheme.typography.titleLarge)
+            Text(
+                "Ajoute les calories d'un effort non mesuré (muscu, sport en salle…).",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            OutlinedButton(onClick = onAdd, modifier = Modifier.fillMaxWidth()) {
+                Text("Ajouter manuellement")
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ManualEffortDialog(
+    estimateKcal: (ActivityType, Long) -> Double,
+    onDismiss: () -> Unit,
+    onConfirm: (ActivityType, Long, Double) -> Unit,
+) {
+    var type by remember { mutableStateOf(ActivityType.OTHER) }
+    var durationText by remember { mutableStateOf("") }
+    var kcalText by remember { mutableStateOf("") }
+
+    val durationSec = (durationText.toLongOrNull() ?: 0L) * 60
+    val kcal = kcalText.toDoubleOrNull()
+    val estimate = if (durationSec > 0) estimateKcal(type, durationSec) else 0.0
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Effort manuel") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                ActivityTypeDropdown(type) { type = it }
+                OutlinedTextField(
+                    value = durationText,
+                    onValueChange = { durationText = it.filter(Char::isDigit) },
+                    label = { Text("Durée (min, optionnel)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = kcalText,
+                    onValueChange = { kcalText = it.filter { c -> c.isDigit() } },
+                    label = { Text("Calories brûlées (kcal)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                if (estimate > 0) {
+                    TextButton(onClick = { kcalText = estimate.roundToInt().toString() }) {
+                        Text("Estimer · ~${estimate.roundToInt()} kcal")
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { kcal?.let { onConfirm(type, durationSec, it) } },
+                enabled = kcal != null && kcal > 0,
+            ) {
+                Text("Ajouter")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Annuler") }
+        },
+    )
+}
+
+@Composable
 private fun SessionRow(session: ActivitySession) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
             Text(session.type.label, style = MaterialTheme.typography.bodyLarge)
+            val parts = buildList {
+                if (session.distanceM > 0) add("${"%.2f".format(session.distanceM / 1000)} km")
+                if (session.durationSec > 0) add(formatDuration(session.durationSec))
+                add("${session.caloriesKcal.roundToInt()} kcal")
+            }
             Text(
-                "${"%.2f".format(session.distanceM / 1000)} km · " +
-                    "${formatDuration(session.durationSec)} · " +
-                    "${session.caloriesKcal.roundToInt()} kcal",
+                parts.joinToString(" · "),
                 style = MaterialTheme.typography.bodySmall,
             )
         }

@@ -10,6 +10,7 @@ import com.poids.data.local.dao.SleepDao
 import com.poids.data.local.dao.StepDao
 import com.poids.data.local.dao.SubstanceDao
 import com.poids.data.local.dao.UserProfileDao
+import com.poids.data.local.dao.WaterDao
 import com.poids.data.local.dao.WeightDao
 import dagger.Module
 import dagger.Provides
@@ -26,7 +27,7 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): PoidsDatabase =
         Room.databaseBuilder(context, PoidsDatabase::class.java, PoidsDatabase.NAME)
-            .addMigrations(PoidsDatabase.MIGRATION_1_2)
+            .addMigrations(PoidsDatabase.MIGRATION_1_2, PoidsDatabase.MIGRATION_2_3)
             .build()
 
     @Provides fun provideUserProfileDao(db: PoidsDatabase): UserProfileDao = db.userProfileDao()
@@ -37,4 +38,5 @@ object DatabaseModule {
     @Provides fun provideStepDao(db: PoidsDatabase): StepDao = db.stepDao()
     @Provides fun provideSleepDao(db: PoidsDatabase): SleepDao = db.sleepDao()
     @Provides fun provideSubstanceDao(db: PoidsDatabase): SubstanceDao = db.substanceDao()
+    @Provides fun provideWaterDao(db: PoidsDatabase): WaterDao = db.waterDao()
 }

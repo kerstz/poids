@@ -13,6 +13,7 @@ import com.poids.data.local.dao.SleepDao
 import com.poids.data.local.dao.StepDao
 import com.poids.data.local.dao.SubstanceDao
 import com.poids.data.local.dao.UserProfileDao
+import com.poids.data.local.dao.WaterDao
 import com.poids.data.local.dao.WeightDao
 import com.poids.data.local.entity.ActivitySessionEntity
 import com.poids.data.local.entity.FoodItemEntity
@@ -22,6 +23,7 @@ import com.poids.data.local.entity.SleepLogEntity
 import com.poids.data.local.entity.StepDayEntity
 import com.poids.data.local.entity.SubstanceLogEntity
 import com.poids.data.local.entity.UserProfileEntity
+import com.poids.data.local.entity.WaterLogEntity
 import com.poids.data.local.entity.WeightEntryEntity
 
 @Database(
@@ -35,8 +37,9 @@ import com.poids.data.local.entity.WeightEntryEntity
         StepDayEntity::class,
         SleepLogEntity::class,
         SubstanceLogEntity::class,
+        WaterLogEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -49,6 +52,7 @@ abstract class PoidsDatabase : RoomDatabase() {
     abstract fun stepDao(): StepDao
     abstract fun sleepDao(): SleepDao
     abstract fun substanceDao(): SubstanceDao
+    abstract fun waterDao(): WaterDao
 
     companion object {
         const val NAME = "poids.db"
@@ -57,6 +61,19 @@ abstract class PoidsDatabase : RoomDatabase() {
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE substance_log ADD COLUMN label TEXT")
+            }
+        }
+
+        /** v3 : table d'hydratation (suivi de conso d'eau). */
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS water_log (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "dateTime INTEGER NOT NULL, " +
+                        "amountMl INTEGER NOT NULL)",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_water_log_dateTime ON water_log (dateTime)")
             }
         }
     }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,7 +55,7 @@ fun HomeScreen(
         when (val s = state) {
             HomeUiState.Loading -> Unit
             HomeUiState.NoProfile -> NoProfile(onConfigureProfile)
-            is HomeUiState.Ready -> Ready(s, onOpenWeight)
+            is HomeUiState.Ready -> Ready(s, onOpenWeight, viewModel::addWater)
         }
     }
 }
@@ -72,7 +73,11 @@ private fun NoProfile(onConfigure: () -> Unit) {
 }
 
 @Composable
-private fun Ready(state: HomeUiState.Ready, onOpenWeight: () -> Unit) {
+private fun Ready(
+    state: HomeUiState.Ready,
+    onOpenWeight: () -> Unit,
+    onAddWater: (Int) -> Unit,
+) {
     val target = state.targets.dailyTarget
     val solde = (state.intakeKcal - state.burnedKcal - target).roundToInt()
 
@@ -165,6 +170,9 @@ private fun Ready(state: HomeUiState.Ready, onOpenWeight: () -> Unit) {
         )
     }
 
+    // Hydratation
+    WaterSummaryCard(state.waterTodayMl, state.waterGoalMl, onAddWater)
+
     // Macros
     PoidsCard(modifier = Modifier.fillMaxWidth()) {
         Text("Macronutriments", style = MaterialTheme.typography.titleMedium)
@@ -193,6 +201,41 @@ private fun Ready(state: HomeUiState.Ready, onOpenWeight: () -> Unit) {
             }
         }
         PrimaryButton("Pesée du jour", onOpenWeight, modifier = Modifier.padding(top = 12.dp))
+    }
+}
+
+@Composable
+private fun WaterSummaryCard(todayMl: Int, goalMl: Int, onAdd: (Int) -> Unit) {
+    PoidsCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Hydratation", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "${"%.2f".format(todayMl / 1000.0)} / ${"%.1f".format(goalMl / 1000.0)} L",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        ProgressTrack(
+            fraction = if (goalMl > 0) (todayMl.toFloat() / goalMl).coerceIn(0f, 1f) else 0f,
+            color = PoidsTheme.extra.teal,
+            heightDp = 6,
+            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            FilledTonalButton(onClick = { onAdd(250) }, modifier = Modifier.weight(1f)) {
+                Text("+25 cl")
+            }
+            FilledTonalButton(onClick = { onAdd(500) }, modifier = Modifier.weight(1f)) {
+                Text("+50 cl")
+            }
+        }
     }
 }
 

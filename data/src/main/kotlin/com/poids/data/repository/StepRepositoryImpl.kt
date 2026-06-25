@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import com.poids.data.local.dao.StepDao
 import com.poids.data.local.entity.StepDayEntity
 import com.poids.data.sensor.StepCounterDataSource
+import com.poids.data.tracking.TrackingStateHolder
 import com.poids.domain.calc.StepDistanceCalculator
 import com.poids.domain.model.StepDay
 import com.poids.domain.repository.ProfileRepository
@@ -23,6 +24,7 @@ class StepRepositoryImpl @Inject constructor(
     private val stepDao: StepDao,
     private val dataStore: DataStore<Preferences>,
     private val profileRepository: ProfileRepository,
+    private val trackingStateHolder: TrackingStateHolder,
 ) : StepRepository {
 
     override val sensorAvailable: Boolean get() = counter.available
@@ -46,6 +48,11 @@ class StepRepositoryImpl @Inject constructor(
             val (newSteps, newLast) = if (storedDate != today.toEpochDay()) {
                 // Nouveau jour : on repart de zéro, baseline = lecture actuelle.
                 0 to raw
+            } else if (trackingStateHolder.sessionActive) {
+                // Session GPS en cours : ces pas sont déjà comptés par la session
+                // (kcal MET). On n'accumule pas pour éviter le double-comptage, mais
+                // on avance le baseline pour ne pas réinjecter ces pas à la fin.
+                storedSteps to raw
             } else {
                 // Reboot si le compteur a reculé → raw = pas depuis le boot.
                 val delta = if (raw >= storedLast) (raw - storedLast).toInt() else raw.toInt()
