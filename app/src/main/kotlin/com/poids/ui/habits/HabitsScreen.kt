@@ -227,7 +227,7 @@ private fun WaterProgressBar(frac: Float, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxWidth(frac)
                 .height(10.dp)
-                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(5.dp)),
+                .background(PoidsTheme.extra.teal, RoundedCornerShape(5.dp)),
         )
     }
 }
