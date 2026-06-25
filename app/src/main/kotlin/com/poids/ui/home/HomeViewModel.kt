@@ -3,6 +3,7 @@ package com.poids.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.poids.domain.calc.CalorieTargetCalculator
+import com.poids.domain.calc.WaterGoalCalculator
 import com.poids.domain.model.CalorieTargets
 import com.poids.domain.model.StepDay
 import com.poids.domain.model.UserProfile
@@ -11,12 +12,15 @@ import com.poids.domain.repository.DailyEnergyRepository
 import com.poids.domain.repository.MealRepository
 import com.poids.domain.repository.ProfileRepository
 import com.poids.domain.repository.StepRepository
+import com.poids.domain.repository.WaterRepository
 import com.poids.domain.repository.WeightRepository
+import com.poids.settings.SettingsPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -33,6 +37,8 @@ sealed interface HomeUiState {
         val proteinG: Double,
         val fatG: Double,
         val stepDay: StepDay,
+        val waterTodayMl: Int = 0,
+        val waterGoalMl: Int = WaterGoalCalculator.DEFAULT_GOAL_ML,
     ) : HomeUiState {
         val netKcal: Double get() = intakeKcal - burnedKcal
     }
@@ -45,11 +51,17 @@ class HomeViewModel @Inject constructor(
     mealRepository: MealRepository,
     dailyEnergyRepository: DailyEnergyRepository,
     stepRepository: StepRepository,
+    private val waterRepository: WaterRepository,
+    settingsPreferences: SettingsPreferences,
 ) : ViewModel() {
+
+    fun addWater(amountMl: Int) {
+        viewModelScope.launch { waterRepository.addWater(amountMl) }
+    }
 
     private val today: LocalDate = LocalDate.now()
 
-    val uiState: StateFlow<HomeUiState> = combine(
+    private val baseState: kotlinx.coroutines.flow.Flow<HomeUiState> = combine(
         profileRepository.observeProfile(),
         weightRepository.observeLatest(),
         mealRepository.observeMealsForDate(today),
@@ -70,6 +82,24 @@ class HomeViewModel @Inject constructor(
                 fatG = meals.sumOf { it.fatG ?: 0.0 },
                 stepDay = stepDay,
             )
+        }
+    }
+
+    val uiState: StateFlow<HomeUiState> = combine(
+        baseState,
+        waterRepository.observeForDate(today),
+        settingsPreferences.settings,
+    ) { base, water, settings ->
+        if (base is HomeUiState.Ready) {
+            base.copy(
+                waterTodayMl = water.sumOf { it.amountMl },
+                waterGoalMl = settings.waterGoalMl
+                    ?: WaterGoalCalculator.dailyGoalMl(
+                        base.latestWeight?.weightKg ?: base.profile.weightKg,
+                    ),
+            )
+        } else {
+            base
         }
     }.stateIn(
         scope = viewModelScope,

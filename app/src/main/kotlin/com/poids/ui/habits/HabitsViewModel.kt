@@ -2,9 +2,11 @@ package com.poids.ui.habits
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.poids.domain.calc.WaterGoalCalculator
 import com.poids.domain.model.SleepLog
 import com.poids.domain.model.SubstanceKind
 import com.poids.domain.repository.HabitRepository
+import com.poids.domain.repository.WaterRepository
 import com.poids.domain.repository.WeightRepository
 import com.poids.settings.SettingsPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,13 +33,17 @@ data class HabitsUiState(
     val substanceTrackingEnabled: Boolean = false,
     /** Substances déjà saisies (nom, unité) pour l'autocomplete. */
     val recentSubstances: List<Pair<String, String>> = emptyList(),
+    /** Hydratation du jour (ml) et objectif (ml). */
+    val waterTodayMl: Int = 0,
+    val waterGoalMl: Int = WaterGoalCalculator.DEFAULT_GOAL_ML,
 )
 
 @HiltViewModel
 class HabitsViewModel @Inject constructor(
     private val habitRepository: HabitRepository,
+    private val waterRepository: WaterRepository,
     weightRepository: WeightRepository,
-    settingsPreferences: SettingsPreferences,
+    private val settingsPreferences: SettingsPreferences,
 ) : ViewModel() {
 
     private val today: LocalDate = LocalDate.now()
@@ -48,12 +54,14 @@ class HabitsViewModel @Inject constructor(
         habitRepository.observeSubstances(),
         weightRepository.observeAll(),
         settingsPreferences.settings,
-    ) { sleep, substances, weights, settings ->
+        waterRepository.observeForDate(today),
+    ) { sleep, substances, weights, settings, water ->
         val byDate = sleep.associateBy { it.date }
         val last7 = (0..6).map { offset ->
             byDate[weekStart.plusDays(offset.toLong())]?.durationMin ?: 0
         }
         val todaySubs = substances.filter { it.dateTime.toLocalDate() == today }
+        val latestWeight = weights.firstOrNull()?.weightKg
         HabitsUiState(
             latestSleep = sleep.firstOrNull(),
             last7Sleep = last7,
@@ -66,8 +74,22 @@ class HabitsViewModel @Inject constructor(
                 .map { displayName(it) to it.unit }
                 .distinctBy { it.first.lowercase() }
                 .take(9),
+            waterTodayMl = water.sumOf { it.amountMl },
+            waterGoalMl = settings.waterGoalMl ?: WaterGoalCalculator.dailyGoalMl(latestWeight),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HabitsUiState())
+
+    fun addWater(amountMl: Int) {
+        viewModelScope.launch { waterRepository.addWater(amountMl) }
+    }
+
+    fun undoLastWater() {
+        viewModelScope.launch { waterRepository.deleteLastForDate(today) }
+    }
+
+    fun setWaterGoal(ml: Int?) {
+        viewModelScope.launch { settingsPreferences.setWaterGoal(ml) }
+    }
 
     fun addSleep(bedTime: LocalTime, wakeTime: LocalTime) {
         viewModelScope.launch {

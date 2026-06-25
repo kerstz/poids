@@ -14,7 +14,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -26,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.poids.ui.components.PoidsCard
@@ -42,6 +46,8 @@ fun HabitsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showSleepDialog by remember { mutableStateOf(false) }
     var showSubstanceDialog by remember { mutableStateOf(false) }
+    var showWaterCustomDialog by remember { mutableStateOf(false) }
+    var showWaterGoalDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -52,6 +58,15 @@ fun HabitsScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Text("Habitudes", style = MaterialTheme.typography.titleLarge)
+
+        WaterCard(
+            todayMl = state.waterTodayMl,
+            goalMl = state.waterGoalMl,
+            onAdd = viewModel::addWater,
+            onCustom = { showWaterCustomDialog = true },
+            onUndo = viewModel::undoLastWater,
+            onEditGoal = { showWaterGoalDialog = true },
+        )
 
         SleepCard(
             latestSummary = state.latestSleep?.let {
@@ -112,6 +127,150 @@ fun HabitsScreen(
             },
         )
     }
+    if (showWaterCustomDialog) {
+        WaterAmountDialog(
+            title = "Ajouter de l'eau",
+            label = "Quantité (ml)",
+            initial = "",
+            onDismiss = { showWaterCustomDialog = false },
+            onConfirm = { ml ->
+                viewModel.addWater(ml)
+                showWaterCustomDialog = false
+            },
+        )
+    }
+    if (showWaterGoalDialog) {
+        WaterAmountDialog(
+            title = "Objectif d'hydratation",
+            label = "Objectif (ml)",
+            initial = state.waterGoalMl.toString(),
+            neutralLabel = "Auto",
+            onNeutral = {
+                viewModel.setWaterGoal(null)
+                showWaterGoalDialog = false
+            },
+            onDismiss = { showWaterGoalDialog = false },
+            onConfirm = { ml ->
+                viewModel.setWaterGoal(ml)
+                showWaterGoalDialog = false
+            },
+        )
+    }
+}
+
+@Composable
+private fun WaterCard(
+    todayMl: Int,
+    goalMl: Int,
+    onAdd: (Int) -> Unit,
+    onCustom: () -> Unit,
+    onUndo: () -> Unit,
+    onEditGoal: () -> Unit,
+) {
+    PoidsCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Hydratation", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Objectif ›",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable(onClick = onEditGoal),
+            )
+        }
+        val percent = if (goalMl > 0) (todayMl * 100f / goalMl).roundToInt() else 0
+        Text(
+            "${"%.2f".format(todayMl / 1000.0)} L",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        Text(
+            "objectif ${"%.1f".format(goalMl / 1000.0)} L · $percent %",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        WaterProgressBar(
+            frac = if (goalMl > 0) (todayMl.toFloat() / goalMl).coerceIn(0f, 1f) else 0f,
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            FilledTonalButton(onClick = { onAdd(250) }, modifier = Modifier.weight(1f)) {
+                Text("+25 cl")
+            }
+            FilledTonalButton(onClick = { onAdd(500) }, modifier = Modifier.weight(1f)) {
+                Text("+50 cl")
+            }
+            FilledTonalButton(onClick = onCustom, modifier = Modifier.weight(1f)) {
+                Text("Autre")
+            }
+        }
+        if (todayMl > 0) {
+            TextButton(onClick = onUndo) { Text("Annuler le dernier") }
+        }
+    }
+}
+
+@Composable
+private fun WaterProgressBar(frac: Float, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .height(10.dp)
+            .background(PoidsTheme.extra.track, RoundedCornerShape(5.dp)),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(frac)
+                .height(10.dp)
+                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(5.dp)),
+        )
+    }
+}
+
+@Composable
+private fun WaterAmountDialog(
+    title: String,
+    label: String,
+    initial: String,
+    neutralLabel: String? = null,
+    onNeutral: (() -> Unit)? = null,
+    onDismiss: () -> Unit,
+    onConfirm: (Int) -> Unit,
+) {
+    var text by remember { mutableStateOf(initial) }
+    val value = text.toIntOrNull()
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it.filter(Char::isDigit) },
+                label = { Text(label) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { value?.let(onConfirm) },
+                enabled = value != null && value > 0,
+            ) { Text("Valider") }
+        },
+        dismissButton = {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (neutralLabel != null && onNeutral != null) {
+                    TextButton(onClick = onNeutral) { Text(neutralLabel) }
+                }
+                TextButton(onClick = onDismiss) { Text("Annuler") }
+            }
+        },
+    )
 }
 
 @Composable

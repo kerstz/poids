@@ -7,6 +7,7 @@ import com.poids.data.repository.HabitRepositoryImpl
 import com.poids.data.repository.MealRepositoryImpl
 import com.poids.data.repository.ProfileRepositoryImpl
 import com.poids.data.repository.StepRepositoryImpl
+import com.poids.data.repository.WaterRepositoryImpl
 import com.poids.data.repository.WeightRepositoryImpl
 import com.poids.domain.repository.ActivityRepository
 import com.poids.domain.repository.DailyEnergyRepository
@@ -15,6 +16,7 @@ import com.poids.domain.repository.HabitRepository
 import com.poids.domain.repository.MealRepository
 import com.poids.domain.repository.ProfileRepository
 import com.poids.domain.repository.StepRepository
+import com.poids.domain.repository.WaterRepository
 import com.poids.domain.repository.WeightRepository
 import dagger.Binds
 import dagger.Module
@@ -62,4 +64,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindHabitRepository(impl: HabitRepositoryImpl): HabitRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindWaterRepository(impl: WaterRepositoryImpl): WaterRepository
 }

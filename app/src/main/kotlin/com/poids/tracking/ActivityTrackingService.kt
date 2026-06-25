@@ -24,6 +24,7 @@ import com.poids.domain.model.ActivitySource
 import com.poids.domain.model.ActivityType
 import com.poids.domain.model.LiveActivityStats
 import com.poids.domain.model.RoutePoint
+import com.poids.data.tracking.TrackingStateHolder
 import com.poids.domain.repository.ActivityRepository
 import com.poids.domain.repository.ProfileRepository
 import dagger.hilt.android.AndroidEntryPoint
