@@ -31,7 +31,9 @@ class DailyEnergyRepositoryImpl @Inject constructor(
             activityDao.observeBurnedKcal(start, end),
             stepDao.observeDay(date),
         ) { activityKcal, stepDay ->
-            activityKcal + (stepDay?.caloriesKcal ?: 0.0)
+            // energyKcal exclut les pas faits pendant une session GPS (déjà comptés
+            // par la session) → pas de double-comptage. Cf StepDay.energyKcal.
+            activityKcal + (stepDay?.toDomain()?.energyKcal ?: 0.0)
         }
     }
 }

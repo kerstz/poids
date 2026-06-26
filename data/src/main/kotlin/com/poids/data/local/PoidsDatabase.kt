@@ -39,7 +39,7 @@ import com.poids.data.local.entity.WeightEntryEntity
         SubstanceLogEntity::class,
         WaterLogEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -74,6 +74,13 @@ abstract class PoidsDatabase : RoomDatabase() {
                         "amountMl INTEGER NOT NULL)",
                 )
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_water_log_dateTime ON water_log (dateTime)")
+            }
+        }
+
+        /** v4 : pas effectués pendant une session GPS (anti double-comptage calorique). */
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE step_day ADD COLUMN sessionSteps INTEGER NOT NULL DEFAULT 0")
             }
         }
     }

@@ -29,12 +29,12 @@ class CalorieTargetCalculatorTest {
     )
 
     @Test
-    fun `maintain donne cible egale au TDEE`() {
+    fun `maintain donne cible egale au TDEE de base sedentaire`() {
         val t = CalorieTargetCalculator.compute(profile(GoalType.MAINTAIN), today)
-        // BMR 1780 * 1.55 = 2759
+        // BMR 1780 * 1.2 (base sédentaire ; l'activité réelle s'ajoute aux brûlées)
         assertThat(t.bmr).isWithin(0.01).of(1780.0)
-        assertThat(t.tdee).isWithin(0.01).of(2759.0)
-        assertThat(t.dailyTarget).isWithin(0.01).of(2759.0)
+        assertThat(t.tdee).isWithin(0.01).of(2136.0)
+        assertThat(t.dailyTarget).isWithin(0.01).of(2136.0)
         assertThat(t.dailyDeltaKcal).isWithin(0.01).of(0.0)
     }
 
@@ -43,7 +43,7 @@ class CalorieTargetCalculatorTest {
         val t = CalorieTargetCalculator.compute(profile(GoalType.LOSE, rate = 0.5), today)
         // 0.5 * 7700 / 7 = 550
         assertThat(t.dailyDeltaKcal).isWithin(0.01).of(-550.0)
-        assertThat(t.dailyTarget).isWithin(0.01).of(2759.0 - 550.0)
+        assertThat(t.dailyTarget).isWithin(0.01).of(2136.0 - 550.0)
     }
 
     @Test

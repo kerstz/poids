@@ -22,8 +22,8 @@ class MetCalculatorTest {
     @Test
     fun `surcharge ActivityType utilise le MET par defaut`() {
         val kcal = MetCalculator.caloriesBurned(ActivityType.RUNNING, 70.0, 1800)
-        // 9.8 * 70 * 0.5
-        assertThat(kcal).isWithin(0.01).of(343.0)
+        // 9.3 (Compendium 2024) * 70 * 0.5
+        assertThat(kcal).isWithin(0.01).of(325.5)
     }
 
     @Test
