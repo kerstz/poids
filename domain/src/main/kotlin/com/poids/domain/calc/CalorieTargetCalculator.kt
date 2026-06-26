@@ -1,5 +1,6 @@
 package com.poids.domain.calc
 
+import com.poids.domain.model.ActivityLevel
 import com.poids.domain.model.CalorieTargets
 import com.poids.domain.model.GoalType
 import com.poids.domain.model.Sex
@@ -7,7 +8,14 @@ import com.poids.domain.model.UserProfile
 import java.time.LocalDate
 
 /**
- * Dérive BMR → TDEE → cible calorique quotidienne à partir du profil et de l'objectif.
+ * Dérive BMR → TDEE de base → cible calorique quotidienne à partir du profil et de l'objectif.
+ *
+ * **Architecture énergétique (modèle additif, « Option A ») :** le TDEE de la cible utilise
+ * une base **sédentaire** (BMR × 1.2 = métabolisme + vie quotidienne hors sport). L'activité
+ * réelle (pas + séances GPS, en MET net) est mesurée et ajoutée séparément aux calories
+ * brûlées du jour. L'activité n'est donc comptée qu'**une fois** : on évite le double-comptage
+ * d'un multiplicateur qui inclurait déjà l'exercice (FAO/WHO/UNU 2004 ; cf
+ * docs/research/depense-energetique-bmr-tdee.md, Q3).
  *
  * Conversion énergie ⇄ masse : **7700 kcal ≈ 1 kg** de masse grasse.
  * Déficit/surplus quotidien = rythme hebdo (kg) × 7700 / 7.
@@ -18,6 +26,9 @@ import java.time.LocalDate
 object CalorieTargetCalculator {
 
     private const val KCAL_PER_KG = 7700.0
+
+    /** Base d'activité du TDEE cible (sédentaire) — l'activité mesurée s'ajoute par-dessus. */
+    private val BASE_ACTIVITY = ActivityLevel.SEDENTARY
 
     fun minSafeIntake(sex: Sex): Double = when (sex) {
         Sex.FEMALE -> 1200.0
@@ -31,7 +42,7 @@ object CalorieTargetCalculator {
             ageYears = profile.ageOn(today),
             sex = profile.sex,
         )
-        val tdee = TdeeCalculator.fromBmr(bmr, profile.activityLevel)
+        val tdee = TdeeCalculator.fromBmr(bmr, BASE_ACTIVITY)
 
         val dailyDelta = when (profile.goalType) {
             GoalType.MAINTAIN -> 0.0

@@ -128,6 +128,7 @@ fun StepDayEntity.toDomain(): StepDay = StepDay(
     steps = steps,
     distanceM = distanceM,
     caloriesKcal = caloriesKcal,
+    sessionSteps = sessionSteps,
 )
 
 // --- SleepLog / SubstanceLog ---

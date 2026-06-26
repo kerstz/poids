@@ -44,25 +44,32 @@ class StepRepositoryImpl @Inject constructor(
             val storedDate = prefs[KEY_DATE]
             val storedLast = prefs[KEY_LAST] ?: raw
             val storedSteps = prefs[KEY_STEPS] ?: 0
+            val storedSessionSteps = prefs[KEY_SESSION_STEPS] ?: 0
 
-            val (newSteps, newLast) = if (storedDate != today.toEpochDay()) {
-                // Nouveau jour : on repart de zéro, baseline = lecture actuelle.
-                0 to raw
-            } else if (trackingStateHolder.sessionActive) {
-                // Session GPS en cours : ces pas sont déjà comptés par la session
-                // (kcal MET). On n'accumule pas pour éviter le double-comptage, mais
-                // on avance le baseline pour ne pas réinjecter ces pas à la fin.
-                storedSteps to raw
+            // delta = pas depuis la dernière lecture (gère le reboot : compteur remis à 0).
+            val delta = if (storedDate != today.toEpochDay()) {
+                0
+            } else if (raw >= storedLast) {
+                (raw - storedLast).toInt()
             } else {
-                // Reboot si le compteur a reculé → raw = pas depuis le boot.
-                val delta = if (raw >= storedLast) (raw - storedLast).toInt() else raw.toInt()
-                (storedSteps + delta) to raw
+                raw.toInt()
+            }
+
+            // Le total du jour accumule TOUS les pas, sport inclus (repères « pas/jour »).
+            val newSteps = if (storedDate != today.toEpochDay()) 0 else storedSteps + delta
+            // Les pas faits pendant une session GPS sont comptés à part : leur part
+            // calorique sera retranchée du bilan (déjà comptée par la session MET).
+            val newSessionSteps = when {
+                storedDate != today.toEpochDay() -> 0
+                trackingStateHolder.sessionActive -> storedSessionSteps + delta
+                else -> storedSessionSteps
             }
 
             dataStore.edit {
                 it[KEY_DATE] = today.toEpochDay()
                 it[KEY_STEPS] = newSteps
-                it[KEY_LAST] = newLast
+                it[KEY_SESSION_STEPS] = newSessionSteps
+                it[KEY_LAST] = raw
             }
 
             val profile = profileRepository.getProfile()
@@ -73,13 +80,14 @@ class StepRepositoryImpl @Inject constructor(
                 StepDistanceCalculator.caloriesWalked(distance, it.weightKg)
             } ?: 0.0
 
-            stepDao.upsert(StepDayEntity(today, newSteps, distance, kcal))
+            stepDao.upsert(StepDayEntity(today, newSteps, distance, kcal, newSessionSteps))
         }
     }
 
     private companion object {
         val KEY_DATE = longPreferencesKey("date")
         val KEY_STEPS = intPreferencesKey("steps")
+        val KEY_SESSION_STEPS = intPreferencesKey("session_steps")
         val KEY_LAST = longPreferencesKey("last_counter")
     }
 }

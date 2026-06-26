@@ -24,7 +24,8 @@ data class ProfileFormState(
     val weightKg: String = "",
     val birthDate: LocalDate? = null,
     val sex: Sex = Sex.MALE,
-    val activityLevel: ActivityLevel = ActivityLevel.MODERATE,
+    // Base sédentaire : l'activité réelle est mesurée (pas + séances) et ajoutée aux brûlées.
+    val activityLevel: ActivityLevel = ActivityLevel.SEDENTARY,
     val goalType: GoalType = GoalType.LOSE,
     val targetWeightKg: String = "",
     val weeklyRateKg: String = "0.5",
@@ -68,7 +69,6 @@ class ProfileViewModel @Inject constructor(
     fun onWeightChange(v: String) = _form.update { it.copy(weightKg = v, error = null) }
     fun onBirthDateChange(v: LocalDate) = _form.update { it.copy(birthDate = v, error = null) }
     fun onSexChange(v: Sex) = _form.update { it.copy(sex = v, error = null) }
-    fun onActivityChange(v: ActivityLevel) = _form.update { it.copy(activityLevel = v, error = null) }
     fun onGoalChange(v: GoalType) = _form.update { it.copy(goalType = v, error = null) }
     fun onTargetChange(v: String) = _form.update { it.copy(targetWeightKg = v, error = null) }
     fun onRateChange(v: String) = _form.update { it.copy(weeklyRateKg = v, error = null) }

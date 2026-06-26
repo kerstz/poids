@@ -120,10 +120,15 @@ fun ProfileScreen(
                 }
             }
 
-            ActivityLevelDropdown(
-                selected = form.activityLevel,
-                onSelected = viewModel::onActivityChange,
-            )
+            LabeledSection("Activité") {
+                Text(
+                    "Ton activité est mesurée automatiquement : ta cible part d'une base au " +
+                        "repos, et tes pas et séances s'ajoutent aux calories brûlées du jour. " +
+                        "Plus besoin de choisir un niveau.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
 
             LabeledSection("Objectif") {
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
@@ -213,44 +218,6 @@ private fun BirthDateField(birthDate: LocalDate?, onPicked: (LocalDate) -> Unit)
                 TextButton(onClick = { showDialog = false }) { Text("Annuler") }
             },
         ) { DatePicker(state = state) }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ActivityLevelDropdown(
-    selected: ActivityLevel,
-    onSelected: (ActivityLevel) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-    ) {
-        OutlinedTextField(
-            value = selected.label,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Niveau d'activité") },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                .fillMaxWidth(),
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            ActivityLevel.entries.forEach { level ->
-                DropdownMenuItem(
-                    text = { Text(level.label) },
-                    onClick = {
-                        onSelected(level)
-                        expanded = false
-                    },
-                )
-            }
-        }
     }
 }
 

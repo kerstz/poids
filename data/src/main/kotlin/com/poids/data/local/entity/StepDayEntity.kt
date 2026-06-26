@@ -1,5 +1,6 @@
 package com.poids.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.time.LocalDate
@@ -15,4 +16,6 @@ data class StepDayEntity(
     val steps: Int,
     val distanceM: Double,
     val caloriesKcal: Double,
+    /** Pas effectués pendant une session GPS active (déjà comptés en kcal par la session). */
+    @ColumnInfo(defaultValue = "0") val sessionSteps: Int = 0,
 )
