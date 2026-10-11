@@ -15,6 +15,9 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.tally.core.time.AppClock
 import org.tally.data.db.TallyDatabase
+import org.tally.data.db.entity.FoodEntity
+import org.tally.domain.model.BaseUnit
+import org.tally.domain.model.FoodSource
 import org.tally.domain.nutrition.Food
 import org.tally.domain.nutrition.FoodPortion
 import org.tally.domain.nutrition.LogFood
@@ -66,6 +69,28 @@ class NutritionRepositoryTest {
         assertEquals(1, foods.search("bio").first().size) // marque
         assertEquals(listOf("100% pur jus"), foods.search("%").first().map { it.name })
         assertEquals(2, foods.search("").first().size)
+    }
+
+    @Test
+    fun updatePreservesColumnsAbsentFromDomain() = runTest {
+        val id = db.foodDao().insert(
+            FoodEntity(
+                name = "Yaourt", source = FoodSource.OFF, baseUnit = BaseUnit.ML,
+                densityGPerMl = 1.03, energyKcal = 60.0, proteinG = 4.0, carbsG = 5.0, fatG = 3.0,
+                sugarsG = 4.5, satFatG = 2.0, fiberG = 0.5, saltG = 0.1, offLastModified = 1234L,
+                createdAt = 1L, updatedAt = 1L,
+            ),
+        )
+        val food = foods.get(id)!!.food
+        foods.save(food.copy(name = "Yaourt nature"), emptyList())
+        val e = db.foodDao().get(id)!!
+        assertEquals("Yaourt nature", e.name)
+        assertEquals(4.5, e.sugarsG!!, 0.0)
+        assertEquals(2.0, e.satFatG!!, 0.0)
+        assertEquals(0.5, e.fiberG!!, 0.0)
+        assertEquals(0.1, e.saltG!!, 0.0)
+        assertEquals(1.03, e.densityGPerMl!!, 0.0)
+        assertEquals(1234L, e.offLastModified)
     }
 
     @Test
