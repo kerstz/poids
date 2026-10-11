@@ -28,15 +28,28 @@ import androidx.compose.ui.semantics.semantics
 import org.tally.coreui.icon.TallyIcons
 import org.tally.coreui.theme.TallyTheme
 
-/**
- * Ligne de journal : nom, détail (quantité), kcal. Un seul nœud TalkBack.
- * Si [onDelete] est fourni : swipe fin→début + action TalkBack [deleteLabel] ; l'appelant affiche le snackbar « Annuler ».
- */
+/** Ligne de journal : nom, détail (quantité), kcal. Voir [DataRow]. */
 @Composable
 fun FoodRow(
     name: String,
     detail: String,
     kcal: String,
+    modifier: Modifier = Modifier,
+    secondary: String? = null,
+    onClick: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
+    deleteLabel: String = "",
+) = DataRow(name, detail, kcal, modifier, secondary, onClick, onDelete, deleteLabel)
+
+/**
+ * Ligne de données : titre, détail, valeur à droite. Un seul nœud TalkBack.
+ * Si [onDelete] est fourni : swipe fin→début + action TalkBack [deleteLabel] ; l'appelant affiche le snackbar « Annuler ».
+ */
+@Composable
+fun DataRow(
+    title: String,
+    detail: String,
+    value: String,
     modifier: Modifier = Modifier,
     secondary: String? = null,
     onClick: (() -> Unit)? = null,
@@ -55,13 +68,15 @@ fun FoodRow(
             horizontalArrangement = Arrangement.spacedBy(TallyTheme.spacing.m),
         ) {
             Column(Modifier.weight(1f)) {
-                Text(name, style = MaterialTheme.typography.bodyLarge, color = TallyTheme.colors.onSurface)
+                Text(title, style = MaterialTheme.typography.bodyLarge, color = TallyTheme.colors.onSurface)
                 Text(detail, style = TallyTheme.type.numberBody, color = TallyTheme.colors.onSurfaceVariant)
                 if (secondary != null) {
                     Text(secondary, style = MaterialTheme.typography.bodySmall, color = TallyTheme.colors.onSurfaceVariant)
                 }
             }
-            Text(kcal, style = TallyTheme.type.numberBody, color = TallyTheme.colors.onSurface)
+            if (value.isNotEmpty()) {
+                Text(value, style = TallyTheme.type.numberBody, color = TallyTheme.colors.onSurface)
+            }
         }
     }
     if (onDelete == null) {

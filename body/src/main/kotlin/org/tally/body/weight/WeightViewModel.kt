@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.ZoneId
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -59,7 +61,19 @@ class WeightViewModel @Inject constructor(
         return true
     }
 
-    fun delete(id: Long) {
-        viewModelScope.launch { repository.delete(id) }
+    private val deletedEvents = MutableSharedFlow<WeightEntry>(extraBufferCapacity = 8)
+
+    /** Pesées supprimées, réinsérables via [undo]. */
+    val deleted: SharedFlow<WeightEntry> = deletedEvents
+
+    fun delete(entry: WeightEntry) {
+        viewModelScope.launch {
+            repository.delete(entry.id)
+            deletedEvents.emit(entry)
+        }
+    }
+
+    fun undo(entry: WeightEntry) {
+        viewModelScope.launch { saveWeight.add(entry.valueKg, entry.measuredAt, entry.zoneId, entry.note) }
     }
 }

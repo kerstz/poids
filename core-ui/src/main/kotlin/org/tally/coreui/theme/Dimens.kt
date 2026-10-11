@@ -31,6 +31,7 @@ class TallyDimens(
     val gaugeHeight: Dp = 8.dp,
     /** Réserve en bas de liste sous le FAB. */
     val fabClearance: Dp = 88.dp,
+    val chartHeight: Dp = 220.dp,
 )
 
 internal val TallyShapes = Shapes(
