@@ -1,5 +1,6 @@
 package org.tally.data.nutrition
 
+import android.database.sqlite.SQLiteConstraintException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
@@ -44,7 +45,12 @@ class FoodRepositoryImpl @Inject constructor(
             FoodPortionEntity(foodId = food.id, label = it.label, quantityBase = it.quantityBase, isDefault = it.isDefault)
         }
         return if (food.id == 0L) {
-            dao.insertWithPortions(food.toEntity(createdAt = now, updatedAt = now), portionEntities)
+            try {
+                dao.insertWithPortions(food.toEntity(createdAt = now, updatedAt = now), portionEntities)
+            } catch (e: SQLiteConstraintException) {
+                // Import concurrent du même code-barres (index unique) : on réutilise la ligne gagnante.
+                food.barcode?.let { dao.findByBarcodeAny(it)?.id } ?: throw e
+            }
         } else {
             val existing = requireNotNull(dao.get(food.id)) { "aliment ${food.id} introuvable" }
             dao.updateWithPortions(

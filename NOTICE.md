@@ -15,7 +15,8 @@ leur licence d'origine ; elles ne sont pas relicenciées sous GPLv3.
   Contenu des fiches : Database Contents License (DbCL) 1.0.
 - Site : <https://world.openfoodfacts.org> — licence : <https://opendatacommons.org/licenses/odbl/1-0/>
 - Les aliments copiés depuis OFF portent `source = OFF` dans la base locale ; toute base dérivée
-  redistribuée (export, sauvegarde partagée) doit conserver cette attribution et la licence ODbL.
+  utilisée publiquement (ODbL §4.4, à confirmer par un juriste) doit conserver cette attribution
+  et la licence ODbL.
 - Les images OFF (CC BY-SA 3.0) ne sont ni affichées ni stockées à ce jour.
 - Requêtes identifiées par l'User-Agent `Tally/<version> (Android; +https://github.com/kerstz/poids)`.
 
@@ -25,7 +26,7 @@ leur licence d'origine ; elles ne sont pas relicenciées sous GPLv3.
   <https://ciqual.anses.fr>, jeu de données data.gouv.fr publié sous Licence Ouverte.
 - Mention à afficher : « Source : Anses – Table de composition nutritionnelle des aliments Ciqual 2020,
   licence ouverte Etalab. Données modifiées par Tally (conversion de format). » (+ date de dernière mise à jour).
-- La version de la Licence Ouverte (1.0 ou 2.0) et le passage à CIQUAL 2025 restent à vérifier :
+- Licence Ouverte 1.0 (Etalab, identifiant data.gouv `fr-lo`). Le passage à CIQUAL 2025 reste à vérifier :
   voir `docs/AUDIT.md` §8.1.
 
 ## USDA FoodData Central (si utilisée plus tard)

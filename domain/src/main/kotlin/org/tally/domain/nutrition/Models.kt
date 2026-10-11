@@ -70,7 +70,23 @@ data class Food(
     val densityGPerMl: Double? = null,
     /** Renseigné en lecture seulement (archivage logique) ; ignoré à l'écriture. */
     val isArchived: Boolean = false,
-)
+) {
+    companion object
+}
+
+/**
+ * Applique les champs éditables sur l'aliment [base] chargé (ou un aliment neuf si null), en conservant
+ * code-barres, source, nutriments optionnels et densité que l'éditeur ne gère pas.
+ */
+fun Food.Companion.edited(
+    base: Food?,
+    id: Long,
+    name: String,
+    brand: String?,
+    baseUnit: BaseUnit,
+    per100: Macros,
+): Food = (base ?: Food(id = id, name = name, per100 = per100))
+    .copy(id = id, name = name, brand = brand, baseUnit = baseUnit, per100 = per100)
 
 data class FoodPortion(
     val id: Long = 0,

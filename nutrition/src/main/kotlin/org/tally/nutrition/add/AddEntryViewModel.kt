@@ -138,10 +138,18 @@ class AddEntryViewModel @Inject constructor(
 
     /** Copie le produit distant dans `food` puis ouvre le choix de quantité. */
     fun chooseRemote(item: RemoteFood) {
+        if (importing) return // double appui : un seul import à la fois
+        importing = true
         viewModelScope.launch {
-            importRemoteFood(item)?.let { selectFood(it) } ?: run { _online.value = OnlineState.Unavailable }
+            try {
+                importRemoteFood(item)?.let { selectFood(it) } ?: run { _online.value = OnlineState.Unavailable }
+            } finally {
+                importing = false
+            }
         }
     }
+
+    private var importing = false
 
     private fun secondsFor(ms: Long): Int = ((ms + 999) / 1_000).toInt().coerceAtLeast(1)
 
