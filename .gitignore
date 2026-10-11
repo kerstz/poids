@@ -24,3 +24,7 @@ keystore.properties
 
 # Outils MCP (sessions de navigation jetables)
 .playwright-mcp/
+
+# Dépôts tiers clonés pour audit + ancienne implémentation
+audit/
+Archive/
