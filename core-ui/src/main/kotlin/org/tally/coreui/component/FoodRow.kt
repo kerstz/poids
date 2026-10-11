@@ -69,7 +69,9 @@ fun DataRow(
         ) {
             Column(Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.bodyLarge, color = TallyTheme.colors.onSurface)
-                Text(detail, style = TallyTheme.type.numberBody, color = TallyTheme.colors.onSurfaceVariant)
+                if (detail.isNotEmpty()) {
+                    Text(detail, style = TallyTheme.type.numberBody, color = TallyTheme.colors.onSurfaceVariant)
+                }
                 if (secondary != null) {
                     Text(secondary, style = MaterialTheme.typography.bodySmall, color = TallyTheme.colors.onSurfaceVariant)
                 }

@@ -72,4 +72,14 @@
     <string name="macro_legend_protein">P %1$s g</string>
     <string name="macro_legend_carbs">C %1$s g</string>
     <string name="macro_legend_fat">F %1$s g</string>
+    <string name="add_empty_foods_title">No foods yet</string>
+    <string name="add_empty_foods_body">Create your first food, or search Open Food Facts online.</string>
+    <string name="add_empty_recipes_title">No recipes yet</string>
+    <string name="add_empty_recipes_body">Combine foods into a recipe to log it in one tap.</string>
+    <string name="add_no_match_title">No match</string>
+    <string name="add_no_match_foods_body">Try another name, or create this food.</string>
+    <string name="add_no_match_recipes_body">Try another name, or create this recipe.</string>
+    <string name="add_quantity">Quantity</string>
+    <string name="add_servings_unit">serving(s)</string>
+    <string name="action_retry">Retry</string>
 </resources>
