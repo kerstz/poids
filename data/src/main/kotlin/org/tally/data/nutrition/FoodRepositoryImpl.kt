@@ -40,6 +40,8 @@ class FoodRepositoryImpl @Inject constructor(
     override suspend fun findByBarcodeAny(barcode: String): Food? =
         dao.findByBarcodeAny(Gtin.normalize(barcode))?.toDomain()
 
+    override suspend fun findByCiqualCode(code: Int): Food? = dao.findByCiqualCode(code)?.toDomain()
+
     override suspend fun save(food: Food, portions: List<FoodPortion>): Long {
         val now = clock.nowMillis()
         val portionEntities = portions.map {
@@ -73,6 +75,7 @@ class FoodRepositoryImpl @Inject constructor(
         brand = brand?.trim()?.ifEmpty { null },
         barcode = barcode?.let(Gtin::normalize),
         source = source,
+        ciqualCode = ciqualCode,
         offLastModified = offLastModified,
         baseUnit = baseUnit,
         densityGPerMl = densityGPerMl,
@@ -98,6 +101,7 @@ class FoodRepositoryImpl @Inject constructor(
         per100 = Macros(energyKcal, proteinG, carbsG, fatG),
         per100Detail = NutrientDetail(sugarsG, satFatG, fiberG, saltG),
         densityGPerMl = densityGPerMl,
+        ciqualCode = ciqualCode,
         offLastModified = offLastModified,
         isArchived = archivedAt != null,
     )

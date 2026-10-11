@@ -36,6 +36,7 @@ import org.tally.coreui.component.QuantitySheet
 import org.tally.coreui.icon.TallyIcons
 import org.tally.coreui.theme.TallyTheme
 import org.tally.domain.model.BaseUnit
+import org.tally.domain.nutrition.CiqualFood
 import org.tally.domain.nutrition.Food
 import org.tally.domain.nutrition.FoodWithPortions
 import org.tally.domain.nutrition.NutritionCalc
@@ -49,6 +50,8 @@ import org.tally.nutrition.common.parseDecimal
 private const val TAB_FOODS = 0
 private const val TAB_RECIPES = 1
 private const val TAB_ONLINE = 2
+private const val TAB_CIQUAL = 3
+private const val MIN_CIQUAL_QUERY = 2
 private const val MIN_ONLINE_QUERY = 3
 
 /** Écran d'ajout sans état : testable en capture. */
@@ -75,6 +78,8 @@ internal fun AddEntryContent(
     onDismissRecipe: () -> Unit,
     onAddFood: (Food, quantityBase: Double, portionId: Long?, portionCount: Double?) -> Unit,
     onAddRecipe: (Recipe, servings: Double) -> Unit,
+    ciqual: List<CiqualFood> = emptyList(),
+    onChooseCiqual: (CiqualFood) -> Unit = {},
 ) {
     val spacing = TallyTheme.spacing
     Column(Modifier.fillMaxSize()) {
@@ -96,7 +101,7 @@ internal fun AddEntryContent(
                 .padding(horizontal = spacing.gutter, vertical = spacing.s),
             horizontalArrangement = Arrangement.spacedBy(spacing.s),
         ) {
-            listOf(R.string.add_tab_foods, R.string.add_tab_recipes, R.string.add_tab_online)
+            listOf(R.string.add_tab_foods, R.string.add_tab_recipes, R.string.add_tab_online, R.string.add_tab_ciqual)
                 .forEachIndexed { index, label ->
                     FilterChip(
                         selected = tab == index,
@@ -118,6 +123,7 @@ internal fun AddEntryContent(
             when (tab) {
                 TAB_FOODS -> foodItems(foods, query, onSelectFood, onNewFood)
                 TAB_RECIPES -> recipeItems(recipes, query, onSelectRecipe, onNewRecipe)
+                TAB_CIQUAL -> ciqualItems(ciqual, query, onChooseCiqual)
                 else -> onlineItems(online, query, onSubmitOnline, onChooseRemote)
             }
         }
@@ -240,6 +246,34 @@ private fun LazyListScope.onlineItems(
                 modifier = Modifier.padding(horizontal = TallyTheme.spacing.gutter, vertical = TallyTheme.spacing.m),
             )
         }
+    }
+}
+
+private fun LazyListScope.ciqualItems(
+    results: List<CiqualFood>,
+    query: String,
+    onChoose: (CiqualFood) -> Unit,
+) {
+    if (results.isEmpty()) {
+        item(key = "ciqual-status") {
+            Hint(if (query.trim().length < MIN_CIQUAL_QUERY) R.string.ciqual_hint else R.string.ciqual_empty)
+        }
+    }
+    items(results, key = { "c-${it.code}" }) { item ->
+        DataRow(
+            title = item.name,
+            detail = "",
+            value = stringResource(R.string.per_100_g, formatKcal(item.per100)),
+            onClick = { onChoose(item) },
+        )
+    }
+    item(key = "ciqual-attribution") {
+        Text(
+            stringResource(R.string.ciqual_attribution),
+            style = MaterialTheme.typography.bodySmall,
+            color = TallyTheme.colors.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = TallyTheme.spacing.gutter, vertical = TallyTheme.spacing.m),
+        )
     }
 }
 

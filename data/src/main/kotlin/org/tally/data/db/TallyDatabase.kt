@@ -4,6 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import org.tally.data.db.dao.AppSettingDao
+import org.tally.data.db.dao.CiqualDao
 import org.tally.data.db.dao.FoodDao
 import org.tally.data.db.dao.GoalDao
 import org.tally.data.db.dao.JournalDao
@@ -12,6 +13,7 @@ import org.tally.data.db.dao.OffCacheDao
 import org.tally.data.db.dao.MeasurementDao
 import org.tally.data.db.dao.RecipeDao
 import org.tally.data.db.entity.AppSettingEntity
+import org.tally.data.db.entity.CiqualFoodEntity
 import org.tally.data.db.entity.FoodEntity
 import org.tally.data.db.entity.FoodPortionEntity
 import org.tally.data.db.entity.GoalEntity
@@ -38,8 +40,9 @@ import org.tally.data.db.entity.RecipeIngredientEntity
         MeasurementEntity::class,
         AppSettingEntity::class,
         OffProductCacheEntity::class,
+        CiqualFoodEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class TallyDatabase : RoomDatabase() {
@@ -51,11 +54,12 @@ abstract class TallyDatabase : RoomDatabase() {
     abstract fun mealSlotDao(): MealSlotDao
     abstract fun goalDao(): GoalDao
     abstract fun offCacheDao(): OffCacheDao
+    abstract fun ciqualDao(): CiqualDao
 
     companion object {
         const val NAME = "tally.db"
 
-        val ALL_MIGRATIONS = arrayOf(Migrations.MIGRATION_1_2)
+        val ALL_MIGRATIONS = arrayOf(Migrations.MIGRATION_1_2, Migrations.MIGRATION_2_3)
 
         /** Données de référence insérées à la création : créneaux de repas et types de mesure. */
         val seedCallback = object : Callback() {

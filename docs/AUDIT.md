@@ -660,6 +660,7 @@ app_setting (k/v)
 | M9 | Détail nutritionnel (F6, F7) | Somme stricte : inconnu si un terme est inconnu ; recettes : détail calculé depuis les ingrédients ; OFF : `sugars/saturated-fat/fiber/salt_100g` lus | `NutrientDetail`, `Recipe.perServingDetail`, `OffApi` | — |
 | M10 | Migration v2 non publiée (F8, F10) | Pas de backfill déduit du détail (NULL = inconnu) ; code-barres normalisés GTIN-13 avant dédup. Un appareil de dev déjà en v2 doit être réinstallé | `Migrations.kt`, `Gtin.normalize` | Aucune release distribuée (`git tag` vide) |
 | M11 | Annulation journal (F9) | Use case `RestoreJournalEntry` : portion disparue → `portion_id = NULL` | `LogUseCases.kt` | Plus de violation de FK |
+| M12 | CIQUAL embarqué (décision Opus 5.5) | Onglet « Ciqual » (recherche locale, ≥ 2 lettres, sans réseau), table `ciqual_food` rechargée à chaque changement de `ciqual.version`, hors sauvegarde ; v3 = `MIGRATION_2_3` | `CiqualRepositoryImpl`, `ImportCiqualFood` | Jalon 7 : exclure `ciqual_food`, lister les attributions |
 
 ## 8. Données de référence et licences (jalon 2, 2026-10-11)
 
@@ -672,6 +673,7 @@ app_setting (k/v)
 | C3 | La page d'accueil `ciqual.anses.fr` est une SPA Angular : la mention de licence n'y a pas été lue en clair | curl | H |
 | C4 | L'API data.gouv distingue `fr-lo` (« Licence Ouverte / Open Licence », PDF Etalab 2014 = **LO 1.0**) de `lov2` (« version 2.0 ») : CIQUAL 2020 = **LO 1.0** (déduction forte, API `datasets/licenses/`, audit Opus 2026-10-11) | `data.gouv.fr/api/1/datasets/licenses/` | F (déduction) |
 | C5 | **CIQUAL 2025** : un seul jeu (2020) existe sur data.gouv ; **passage à 2025 conditionné à la vérification de sa licence sur le site Anses** (page de téléchargement ou mentions légales du fichier) | recherche data.gouv `q=ciqual` | À faire |
+| C7 | **Embarqué** le 2026-10-11 : `tools/ciqual/convert.py` → CSV 203 Ko, 2 298 aliments sur 3 185 (887 exclus : énergie 328 et 333 à « - », rien n'est calculé). Table Room séparée `ciqual_food` (v3), copie dans `food` (`source=CIQUAL`, `ciqual_code` unique) à l'usage. Attribution dans l'onglet Ciqual et `NOTICE.md` | commit jalon CIQUAL | F |
 | C6 | Obligation LO : mentionner la source (Anses, Table Ciqual 2020) et la date de dernière mise à jour des données → voir `NOTICE.md` | Licence Ouverte | F |
 
 ### 8.2 ODbL (OFF) ↔ GPLv3

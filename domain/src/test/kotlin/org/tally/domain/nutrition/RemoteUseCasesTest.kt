@@ -15,6 +15,7 @@ class RemoteUseCasesTest {
         override suspend fun get(id: Long): FoodWithPortions? = null
         override suspend fun findByBarcode(barcode: String) = stored.firstOrNull { it.barcode == barcode }
         override suspend fun findByBarcodeAny(barcode: String) = stored.firstOrNull { it.barcode == barcode }
+        override suspend fun findByCiqualCode(code: Int) = stored.firstOrNull { it.ciqualCode == code }
         override suspend fun save(food: Food, portions: List<FoodPortion>): Long {
             if (food.id != 0L) {
                 stored[stored.indexOfFirst { it.id == food.id }] = food
@@ -101,5 +102,20 @@ class RemoteUseCasesTest {
         val saveFood = SaveFood(foods)
         assertEquals(null, saveFood(Food(name = "B", barcode = nutella.barcode, per100 = Macros(1.0)), emptyList()))
         assertEquals(1L, saveFood(foods.stored.single().copy(name = "A2"), emptyList()))
+    }
+
+    @Test
+    fun ciqualImportCopiesOnceAndRestoresArchived() = runTest {
+        val foods = FakeFoods()
+        val useCase = ImportCiqualFood(foods, SaveFood(foods))
+        val item = CiqualFood(20047, "Pomme, crue", "05", Macros(52.0, 0.3, 11.4, 0.2), NutrientDetail(sugarsG = 10.0))
+        val first = useCase(item)!!
+        assertEquals(first.id, useCase(item)!!.id)
+        assertEquals(1, foods.stored.size)
+        assertEquals(FoodSource.CIQUAL, foods.stored.single().source)
+        assertEquals(20047, foods.stored.single().ciqualCode)
+        foods.archive(first.id)
+        assertEquals(false, useCase(item)!!.isArchived)
+        assertEquals(false, foods.stored.single().isArchived)
     }
 }

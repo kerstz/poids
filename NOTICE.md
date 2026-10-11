@@ -6,7 +6,7 @@ leur licence d'origine ; elles ne sont pas relicenciées sous GPLv3.
 | Source | Statut | Licence | Mention obligatoire |
 |---|---|---|---|
 | Open Food Facts | Utilisée (requêtes réseau, copie locale des produits importés) | ODbL 1.0 (base), DbCL (contenu), CC BY-SA (images, non utilisées) | Voir ci-dessous |
-| Table CIQUAL 2020 (Anses) | **Prévue, pas encore embarquée** | Licence Ouverte (Etalab) | Voir ci-dessous |
+| Table CIQUAL 2020 (Anses) | **Embarquée** (asset CSV converti, 2 298 aliments) | Licence Ouverte 1.0 (Etalab) | Voir ci-dessous |
 | USDA FoodData Central | **Non utilisée** (réservée à un usage futur) | CC0 1.0 (domaine public) | Aucune (courtoisie : citer USDA FDC) |
 
 ## Open Food Facts
@@ -20,12 +20,15 @@ leur licence d'origine ; elles ne sont pas relicenciées sous GPLv3.
 - Les images OFF (CC BY-SA 3.0) ne sont ni affichées ni stockées à ce jour.
 - Requêtes identifiées par l'User-Agent `Tally/<version> (Android; +https://github.com/kerstz/poids)`.
 
-## Table CIQUAL (Anses) — à confirmer avant embarquement
+## Table CIQUAL (Anses)
 
 - Source : Anses, *Table de composition nutritionnelle des aliments Ciqual 2020*, version 2020-07-07,
   <https://ciqual.anses.fr>, jeu de données data.gouv.fr publié sous Licence Ouverte.
 - Mention à afficher : « Source : Anses – Table de composition nutritionnelle des aliments Ciqual 2020,
   licence ouverte Etalab. Données modifiées par Tally (conversion de format). » (+ date de dernière mise à jour).
+- Fichier : `data/src/main/assets/ciqual/ciqual_2020_07_07.csv`, produit par `tools/ciqual/convert.py` depuis
+  `XML_2020_07_07.zip` (sha256 `cab13941…aa59ca8`) : conversion de format, virgule → point, « traces » et
+  « < x » → 0, 887 aliments sans énergie exclus. Affichée dans l'onglet « Ciqual » de l'écran Ajout.
 - Licence Ouverte 1.0 (Etalab, identifiant data.gouv `fr-lo`). Le passage à CIQUAL 2025 reste à vérifier :
   voir `docs/AUDIT.md` §8.1.
 

@@ -82,4 +82,8 @@
     <string name="add_quantity">Quantity</string>
     <string name="add_servings_unit">serving(s)</string>
     <string name="action_retry">Retry</string>
+    <string name="add_tab_ciqual">Ciqual</string>
+    <string name="ciqual_hint">Type at least 2 letters to search the French Ciqual table (offline).</string>
+    <string name="ciqual_empty">No Ciqual match.</string>
+    <string name="ciqual_attribution">Source: Anses – Ciqual 2020 food composition table (07/07/2020), Open Licence (Etalab). Data converted by Tally.</string>
 </resources>

@@ -78,6 +78,7 @@ class SaveUseCasesTest {
         override suspend fun get(id: Long): FoodWithPortions? = null
         override suspend fun findByBarcode(barcode: String): Food? = null
         override suspend fun findByBarcodeAny(barcode: String): Food? = null
+        override suspend fun findByCiqualCode(code: Int): Food? = null
         override suspend fun save(food: Food, portions: List<FoodPortion>): Long { saved++; return 1 }
         override suspend fun archive(id: Long) = Unit
     }
