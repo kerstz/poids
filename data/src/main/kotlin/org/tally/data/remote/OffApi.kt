@@ -20,6 +20,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.tally.domain.nutrition.Macros
+import org.tally.domain.nutrition.NutrientDetail
 import org.tally.domain.nutrition.RemoteFood
 import org.tally.domain.nutrition.RemoteResult
 
@@ -154,6 +155,12 @@ internal fun JsonObject.toRemoteFood(fallbackCode: String? = null): RemoteFood? 
             proteinG = nutriments.num("proteins_100g") ?: 0.0,
             carbsG = nutriments.num("carbohydrates_100g") ?: 0.0,
             fatG = nutriments.num("fat_100g") ?: 0.0,
+        ),
+        per100Detail = NutrientDetail(
+            sugarsG = nutriments.num("sugars_100g"),
+            satFatG = nutriments.num("saturated-fat_100g"),
+            fiberG = nutriments.num("fiber_100g"),
+            saltG = nutriments.num("salt_100g"),
         ),
         servingQuantityG = num("serving_quantity")?.takeIf { it > 0 },
         lastModifiedEpochSec = num("last_modified_t")?.toLong(),

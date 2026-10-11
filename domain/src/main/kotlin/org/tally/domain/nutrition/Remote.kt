@@ -9,6 +9,7 @@ data class RemoteFood(
     /** Taille de portion déclarée, en g, si connue. */
     val servingQuantityG: Double?,
     val lastModifiedEpochSec: Long?,
+    val per100Detail: NutrientDetail = NutrientDetail.UNKNOWN,
 )
 
 sealed interface RemoteResult<out T> {

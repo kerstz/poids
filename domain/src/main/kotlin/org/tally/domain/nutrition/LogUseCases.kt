@@ -67,9 +67,26 @@ class LogRecipe(
                 quantityBase = servings,
                 quantityUnit = QuantityUnit.SERVING,
                 macros = recipe.perServing * servings,
+                detail = recipe.perServingDetail * servings,
                 loggedAt = clock.nowMillis(),
                 zoneId = zone().id,
             ),
         )
+    }
+}
+
+/**
+ * Annulation d'une suppression : réinsère l'entrée figée. Une portion supprimée entre-temps
+ * (l'édition d'un aliment recrée ses portions) n'est plus référencée, pour ne pas violer la clé étrangère.
+ */
+class RestoreJournalEntry(
+    private val journal: JournalRepository,
+    private val foods: FoodRepository,
+) {
+    suspend operator fun invoke(entry: NewJournalEntry): Long {
+        val portionId = entry.portionId
+        val stillThere = portionId == null ||
+            entry.foodId?.let { foods.get(it) }?.portions?.any { it.id == portionId } == true
+        return journal.add(if (stillThere) entry else entry.copy(portionId = null, portionCount = null))
     }
 }

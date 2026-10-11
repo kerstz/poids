@@ -39,6 +39,7 @@ import org.tally.domain.nutrition.GoalRepository
 import org.tally.domain.nutrition.JournalRepository
 import org.tally.domain.nutrition.LogFood
 import org.tally.domain.nutrition.LogRecipe
+import org.tally.domain.nutrition.RestoreJournalEntry
 import org.tally.domain.nutrition.MealSlotRepository
 import org.tally.domain.nutrition.RecipeRepository
 import org.tally.data.settings.SettingsRepositoryImpl
@@ -123,6 +124,10 @@ object DataProvidersModule {
 
     @Provides
     fun provideLogRecipe(journal: JournalRepository, clock: AppClock): LogRecipe = LogRecipe(journal, clock)
+
+    @Provides
+    fun provideRestoreJournalEntry(journal: JournalRepository, foods: FoodRepository): RestoreJournalEntry =
+        RestoreJournalEntry(journal, foods)
 
     @Provides
     fun provideOffCacheDao(db: TallyDatabase): OffCacheDao = db.offCacheDao()

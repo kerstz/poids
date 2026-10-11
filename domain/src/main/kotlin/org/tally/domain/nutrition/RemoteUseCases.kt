@@ -19,8 +19,9 @@ class ResolveBarcode(
 ) {
     suspend operator fun invoke(barcode: String): BarcodeLookup {
         if (!Gtin.isValid(barcode)) return BarcodeLookup.NotFound
-        foods.findByBarcode(barcode)?.let { return BarcodeLookup.Local(it) }
-        return when (val result = remote.findByBarcode(barcode)) {
+        val code = Gtin.normalize(barcode)
+        foods.findByBarcode(code)?.let { return BarcodeLookup.Local(it) }
+        return when (val result = remote.findByBarcode(code)) {
             is RemoteResult.Success -> BarcodeLookup.Remote(result.value)
             RemoteResult.NotFound -> BarcodeLookup.NotFound
             is RemoteResult.RateLimited -> BarcodeLookup.RateLimited(result.retryAfterMs)
@@ -33,27 +34,33 @@ class ResolveBarcode(
  * Copie un produit distant dans `food` (source OFF) pour qu'il reste utilisable hors ligne et
  * que le cache puisse être purgé sans casser l'historique. Dédoublonne par code-barres.
  *
- * Politique : un code-barres = une ligne. Si l'aliment existe mais est archivé, il est désarchivé et
- * rafraîchi avec les données OFF (nom, marque, macros), en conservant ses portions et son id : le
- * journal est figé, l'historique ne bouge pas.
+ * Politique : un code-barres = une ligne. Si l'aliment existe mais est archivé, un seul `save`
+ * le désarchive et écrase ce que fournit OFF (nom, marque, macros, détail, date) ; l'id, l'unité,
+ * la densité et les portions sont conservés. Le journal est figé : l'historique ne bouge pas.
  */
 class ImportRemoteFood(
     private val foods: FoodRepository,
     private val saveFood: SaveFood,
 ) {
     suspend operator fun invoke(remote: RemoteFood): Food? {
-        foods.findByBarcodeAny(remote.barcode)?.let { existing ->
-            if (!existing.isArchived) return existing
-            val portions = foods.get(existing.id)?.portions.orEmpty()
+        val existing = foods.findByBarcodeAny(remote.barcode)
+        if (existing != null && !existing.isArchived) return existing
+        val servingPortion = remote.servingQuantityG
+            ?.takeIf { it > 0 }
+            ?.let { FoodPortion(label = "1 portion", quantityBase = it, isDefault = true) }
+        if (existing != null) {
+            val kept = foods.get(existing.id)?.portions.orEmpty()
             val refreshed = existing.copy(
                 name = remote.name,
                 brand = remote.brand,
                 source = FoodSource.OFF,
                 per100 = remote.per100,
+                per100Detail = remote.per100Detail,
+                offLastModified = remote.lastModifiedEpochSec,
                 isArchived = false,
             )
-            if (saveFood(refreshed, portions) == null) return null
-            foods.unarchive(existing.id)
+            val portions = kept.ifEmpty { listOfNotNull(servingPortion) }
+            saveFood(refreshed, portions) ?: return null
             return refreshed
         }
         val food = Food(
@@ -62,12 +69,10 @@ class ImportRemoteFood(
             barcode = remote.barcode,
             source = FoodSource.OFF,
             per100 = remote.per100,
+            per100Detail = remote.per100Detail,
+            offLastModified = remote.lastModifiedEpochSec,
         )
-        val portions = remote.servingQuantityG
-            ?.takeIf { it > 0 }
-            ?.let { listOf(FoodPortion(label = "1 portion", quantityBase = it, isDefault = true)) }
-            .orEmpty()
-        val id = saveFood(food, portions) ?: return null
+        val id = saveFood(food, listOfNotNull(servingPortion)) ?: return null
         return food.copy(id = id)
     }
 }

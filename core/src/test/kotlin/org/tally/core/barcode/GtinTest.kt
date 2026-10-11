@@ -1,5 +1,6 @@
 package org.tally.core.barcode
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -13,4 +14,13 @@ class GtinTest {
     @Test fun nonDigits() = assertFalse(Gtin.isValid("30176204220A3"))
     @Test fun looksLikeBarcodeIgnoresChecksum() = assertTrue(Gtin.looksLikeBarcode("1234567890123"))
     @Test fun lettersAreNotBarcode() = assertFalse(Gtin.looksLikeBarcode("avoine"))
+
+    @Test
+    fun normalizeGivesGtin13ForUpcAndLeadingZeroGtin14() {
+        assertEquals("0036000291452", Gtin.normalize("036000291452"))
+        assertEquals("3017620422003", Gtin.normalize("03017620422003"))
+        assertEquals("3017620422003", Gtin.normalize("3017620422003"))
+        assertEquals("73513537", Gtin.normalize("73513537"))
+        assertEquals(true, Gtin.isValid(Gtin.normalize("036000291452")))
+    }
 }

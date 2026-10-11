@@ -15,10 +15,6 @@ class RemoteUseCasesTest {
         override suspend fun get(id: Long): FoodWithPortions? = null
         override suspend fun findByBarcode(barcode: String) = stored.firstOrNull { it.barcode == barcode }
         override suspend fun findByBarcodeAny(barcode: String) = stored.firstOrNull { it.barcode == barcode }
-        override suspend fun unarchive(id: Long) {
-            val i = stored.indexOfFirst { it.id == id }
-            stored[i] = stored[i].copy(isArchived = false)
-        }
         override suspend fun save(food: Food, portions: List<FoodPortion>): Long {
             if (food.id != 0L) {
                 stored[stored.indexOfFirst { it.id == food.id }] = food
@@ -83,13 +79,20 @@ class RemoteUseCasesTest {
         val useCase = ImportRemoteFood(foods, SaveFood(foods))
         val first = useCase(nutella)!!
         foods.archive(first.id)
-        val again = useCase(nutella.copy(name = "Nutella 2", per100 = Macros(540.0, 6.0, 57.0, 31.0)))!!
+        val again = useCase(
+            nutella.copy(
+                name = "Nutella 2", per100 = Macros(540.0, 6.0, 57.0, 31.0),
+                per100Detail = NutrientDetail(sugarsG = 56.0), lastModifiedEpochSec = 99L,
+            ),
+        )!!
         assertEquals(first.id, again.id)
         assertEquals(1, foods.stored.size)
         val row = foods.stored.single()
         assertEquals(false, row.isArchived)
         assertEquals("Nutella 2", row.name)
         assertEquals(540.0, row.per100.energyKcal, 0.0)
+        assertEquals(56.0, row.per100Detail.sugarsG!!, 0.0)
+        assertEquals(99L, row.offLastModified)
     }
 
     @Test

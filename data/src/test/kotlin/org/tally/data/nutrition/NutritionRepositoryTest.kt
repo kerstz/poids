@@ -21,6 +21,7 @@ import org.tally.domain.model.FoodSource
 import org.tally.domain.nutrition.Food
 import org.tally.domain.nutrition.FoodPortion
 import org.tally.domain.nutrition.LogFood
+import org.tally.domain.nutrition.RestoreJournalEntry
 import org.tally.domain.nutrition.LogRecipe
 import org.tally.domain.nutrition.Macros
 import org.tally.domain.nutrition.NutritionCalc
@@ -99,6 +100,56 @@ class NutritionRepositoryTest {
         val second = foods.save(Food(name = "A bis", barcode = "3017620422003", per100 = Macros(1.0)), emptyList())
         assertEquals(first, second)
     }
+
+    @Test
+    fun saveAppliesArchivedFlagBothWays() = runTest {
+        val food = saveOats()
+        foods.archive(food.id)
+        val archived = foods.get(food.id)!!
+        assertTrue(archived.food.isArchived)
+        // L'éditeur repart de l'état stocké : l'archivage est conservé.
+        foods.save(archived.food.copy(name = "Avoine bis"), archived.portions)
+        assertTrue(foods.get(food.id)!!.food.isArchived)
+        foods.save(foods.get(food.id)!!.food.copy(isArchived = false), archived.portions)
+        assertEquals(false, foods.get(food.id)!!.food.isArchived)
+        assertEquals(1, foods.search("avoine").first().size)
+    }
+
+    @Test
+    fun barcodeIsStoredAsGtin13AndFoundWithUpcA() = runTest {
+        val id = foods.save(Food(name = "Soda", barcode = "036000291452", per100 = Macros(40.0)), emptyList())
+        assertEquals("0036000291452", foods.get(id)!!.food.barcode)
+        assertEquals(id, foods.findByBarcode("036000291452")!!.id)
+        assertEquals(id, foods.findByBarcode("0036000291452")!!.id)
+    }
+
+    @Test
+    fun renamingAFoodDoesNotRewriteJournalName() = runTest {
+        val food = saveOats()
+        val slot = journalSlotId()
+        val entryId = LogFood(journal, clock)(20000, slot, food, 50.0)
+        foods.save(food.copy(name = "Autre nom"), emptyList())
+        val item = journal.observeDay(20000).first().single { it.id == entryId }
+        assertEquals("Flocons d'avoine", item.name)
+    }
+
+    @Test
+    fun restoreWithStalePortionDoesNotViolateForeignKey() = runTest {
+        val food = saveOats()
+        val portion = foods.get(food.id)!!.portions.single()
+        val slot = journalSlotId()
+        val id = LogFood(journal, clock)(20000, slot, food, 40.0, portion.id, 1.0)
+        val snapshot = journal.snapshot(id)!!
+        journal.delete(id)
+        // L'édition recrée les portions : l'ancienne est supprimée.
+        foods.save(food.copy(name = "Avoine"), listOf(FoodPortion(label = "2 c.s.", quantityBase = 20.0)))
+        val restored = RestoreJournalEntry(journal, foods)(snapshot)
+        val item = journal.observeDay(20000).first().single { it.id == restored }
+        assertEquals("Flocons d'avoine", item.name)
+        assertEquals(null, journal.snapshot(restored)!!.portionId)
+    }
+
+    private suspend fun journalSlotId(): Long = db.mealSlotDao().observeSlots().first().first().id
 
     @Test
     fun portionsRoundTripAndUpdateReplacesThem() = runTest {

@@ -30,7 +30,10 @@ data class Macros(
     }
 }
 
-/** Nutriments optionnels (g). `null` = inconnu, distinct de 0. Additionnables : une somme partielle reste connue. */
+/**
+ * Nutriments optionnels (g). `null` = inconnu, distinct de 0. Une somme dont un terme est inconnu
+ * est inconnue : on ne présente jamais un total partiel comme exact.
+ */
 data class NutrientDetail(
     val sugarsG: Double? = null,
     val satFatG: Double? = null,
@@ -48,11 +51,12 @@ data class NutrientDetail(
         sum(saltG, other.saltG),
     )
 
-    private fun sum(a: Double?, b: Double?): Double? =
-        if (a == null && b == null) null else (a ?: 0.0) + (b ?: 0.0)
+    private fun sum(a: Double?, b: Double?): Double? = if (a == null || b == null) null else a + b
 
     companion object {
         val UNKNOWN = NutrientDetail()
+        /** Point de départ d'un cumul. */
+        val ZERO = NutrientDetail(0.0, 0.0, 0.0, 0.0)
     }
 }
 
@@ -68,7 +72,9 @@ data class Food(
     val per100Detail: NutrientDetail = NutrientDetail.UNKNOWN,
     /** g/ml, pour convertir un aliment liquide ; non additionnable, donc hors [NutrientDetail]. */
     val densityGPerMl: Double? = null,
-    /** Renseigné en lecture seulement (archivage logique) ; ignoré à l'écriture. */
+    /** Date de dernière modification des données OFF (secondes epoch), si connue. */
+    val offLastModified: Long? = null,
+    /** Archivage logique : appliqué à l'écriture (`true` archive, `false` désarchive). */
     val isArchived: Boolean = false,
 ) {
     companion object
@@ -110,8 +116,10 @@ data class RecipeIngredient(
     val foodName: String,
     val quantityBase: Double,
     val per100: Macros,
+    val per100Detail: NutrientDetail = NutrientDetail.UNKNOWN,
 ) {
     val macros: Macros get() = NutritionCalc.macrosFor(per100, quantityBase)
+    val detail: NutrientDetail get() = per100Detail * (quantityBase / 100.0)
 }
 
 data class Recipe(
@@ -122,6 +130,14 @@ data class Recipe(
 ) {
     val total: Macros get() = ingredients.fold(Macros.ZERO) { acc, i -> acc + i.macros }
     val perServing: Macros get() = if (servings > 0) total * (1.0 / servings) else Macros.ZERO
+
+    /** Connu seulement si tous les ingrédients ont leurs nutriments optionnels. */
+    val perServingDetail: NutrientDetail
+        get() = if (servings > 0) {
+            ingredients.fold(NutrientDetail.ZERO) { acc, i -> acc + i.detail } * (1.0 / servings)
+        } else {
+            NutrientDetail.UNKNOWN
+        }
 }
 
 /** Ligne de journal affichable. Les macros sont le snapshot figé à la saisie. */

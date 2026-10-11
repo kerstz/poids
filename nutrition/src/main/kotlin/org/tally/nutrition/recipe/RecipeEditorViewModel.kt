@@ -77,7 +77,7 @@ class RecipeEditorViewModel @Inject constructor(
     }
 
     fun addIngredient(food: Food, quantityBase: Double) {
-        ingredients.add(RecipeIngredient(food.id, food.name, quantityBase, food.per100))
+        ingredients.add(RecipeIngredient(food.id, food.name, quantityBase, food.per100, food.per100Detail))
     }
 
     fun removeIngredient(index: Int) {
