@@ -656,3 +656,29 @@ app_setting (k/v)
 | M5 | Purge du cache | Purge des entrées expirées à chaque écriture du cache (pas de WorkManager) | `CachedOffRemoteSource` | Évite `RECEIVE_BOOT_COMPLETED` et une dépendance ; écart assumé avec §3.4 |
 | M6 | `quantity_base` | `journal_entry.quantity_unit` (G / ML / SERVING) ajouté ; schéma v1 réécrit (non publié) | commit « Fix : unité explicite… » | R13 / ambiguïté levée |
 | M7 | Écritures | `SaveWeight`, `SaveFood`, `SaveRecipe` : chemin unique validé ; les repositories ne valident pas. Import/restauration (jalon 7) devront les utiliser | `domain/` | Point à respecter au jalon 7 |
+
+## 8. Données de référence et licences (jalon 2, 2026-10-11)
+
+### 8.1 CIQUAL : version retenue
+
+| # | Constat | Source | Statut |
+|---|---|---|---|
+| C1 | **CIQUAL 2020** retenu : jeu de données Anses sur data.gouv.fr, licence `fr-lo` (Licence Ouverte), métadonnées modifiées le 2025-11-20 | `data.gouv.fr/api/1/datasets/table-de-composition-nutritionnelle-des-aliments-ciqual/` | F (métadonnée API) |
+| C2 | Fichier xls FR téléchargé depuis le site Anses (HTTP 200, 3 639 808 o, sha256 `a728c29d…5da75d`), **non embarqué**, **non versionné** | `ciqual.anses.fr/cms/sites/default/files/inline-files/Table Ciqual 2020_FR_2020 07 07.xls` | F |
+| C3 | La page d'accueil `ciqual.anses.fr` est une SPA Angular : la mention de licence n'y a pas été lue en clair | curl | H |
+| C4 | Version de la Licence Ouverte non précisée par l'API (`fr-lo` ≠ numéro) : 1.0 ou 2.0 à confirmer | — | H |
+| C5 | **CIQUAL 2025** : un seul jeu (2020) existe sur data.gouv ; **passage à 2025 conditionné à la vérification de sa licence sur le site Anses** (page de téléchargement ou mentions légales du fichier) | recherche data.gouv `q=ciqual` | À faire |
+| C6 | Obligation LO : mentionner la source (Anses, Table Ciqual 2020) et la date de dernière mise à jour des données → voir `NOTICE.md` | Licence Ouverte | F |
+
+### 8.2 ODbL (OFF) ↔ GPLv3
+
+| # | Analyse (lecture des textes, **pas un avis juridique**) | Statut |
+|---|---|---|
+| O1 | La GPLv3 régit le **code** ; l'ODbL régit la **base de données**. Ce sont deux objets distincts : le code GPLv3 n'est pas une « base dérivée », la base ODbL n'est pas un programme. L'app les distribue côte à côte (agrégat) sans relicencier l'un sous l'autre | Raisonnement, H |
+| O2 | L'ODbL n'est pas une licence logicielle : la FSF ne la liste pas parmi les licences « compatibles GPL », ce qui est sans objet tant que la base n'est pas fusionnée au code | H |
+| O3 | Obligations ODbL qui restent pour la **donnée** : attribution, mention de la licence, partage à l'identique d'une base dérivée rendue publique, maintien de l'ouverture | F (texte ODbL) |
+| O4 | Reste à vérifier : la table `food` (aliments copiés d'OFF) + l'export utilisateur sont-ils une « base dérivée » ? (= J1 de §2.5) ; contenu = DbCL, images = CC BY-SA (J2, aucune image stockée à ce jour) | H |
+| O5 | Reste à vérifier : mélange CIQUAL (LO) et OFF (ODbL) dans la même table `food` : la LO n'impose que l'attribution, donc compatible en principe avec l'ODbL, mais l'Etalab ne cite pas explicitement l'ODbL dans sa liste de licences compatibles | H |
+| O6 | Reste à vérifier : acceptation F-Droid (données ODbL téléchargées à l'exécution, service libre → pas d'anti-feature `NonFreeNet` attendue) | H |
+
+**Verdict :** compatibilité code GPLv3 ↔ données ODbL **plausible mais non confirmée** ; points ouverts O4, O5, O6 + J1, J2. Aucun blocage technique.
