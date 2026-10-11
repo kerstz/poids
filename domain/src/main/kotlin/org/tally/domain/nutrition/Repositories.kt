@@ -6,6 +6,8 @@ interface FoodRepository {
     /** Aliments non archivés dont le nom/la marque contient [query] (vide = tous), triés par nom. */
     fun search(query: String): Flow<List<Food>>
     suspend fun get(id: Long): FoodWithPortions?
+    /** Aliment non archivé portant ce code-barres, s'il existe. */
+    suspend fun findByBarcode(barcode: String): Food?
     suspend fun save(food: Food, portions: List<FoodPortion>): Long
     /** Archivage : l'aliment disparaît des recherches mais l'historique reste intact. */
     suspend fun archive(id: Long)

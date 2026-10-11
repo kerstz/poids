@@ -7,6 +7,19 @@ import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.first
+import org.tally.core.barcode.Gtin
+import org.tally.domain.nutrition.BarcodeLookup
+import org.tally.domain.nutrition.FoodRemoteSource
+import org.tally.domain.nutrition.ImportRemoteFood
+import org.tally.domain.nutrition.RemoteFood
+import org.tally.domain.nutrition.RemoteResult
+import org.tally.domain.nutrition.ResolveBarcode
+import org.tally.domain.settings.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,12 +36,23 @@ import org.tally.domain.nutrition.Recipe
 import org.tally.domain.nutrition.RecipeRepository
 import org.tally.nutrition.AddEntryRoute
 
+/** État de la recherche Open Food Facts (onglet « En ligne »). */
+sealed interface OnlineState {
+    data object Idle : OnlineState
+    data object Loading : OnlineState
+    data class Results(val items: List<RemoteFood>) : OnlineState
+    data object Empty : OnlineState
+    data class RateLimited(val seconds: Int) : OnlineState
+    data object Unavailable : OnlineState
+    data object Disabled : OnlineState
+}
+
 data class AddEntryUiState(
     val foods: List<Food> = emptyList(),
     val recipes: List<Recipe> = emptyList(),
 )
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 class AddEntryViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -36,6 +60,10 @@ class AddEntryViewModel @Inject constructor(
     recipeRepository: RecipeRepository,
     private val logFood: LogFood,
     private val logRecipe: LogRecipe,
+    private val remote: FoodRemoteSource,
+    private val resolveBarcode: ResolveBarcode,
+    private val importRemoteFood: ImportRemoteFood,
+    private val settings: SettingsRepository,
 ) : ViewModel() {
 
     private val route = savedStateHandle.toRoute<AddEntryRoute>()
@@ -57,6 +85,66 @@ class AddEntryViewModel @Inject constructor(
     private val _selectedFood = MutableStateFlow<FoodWithPortions?>(null)
     val selectedFood: StateFlow<FoodWithPortions?> = _selectedFood
 
+    private val _online = MutableStateFlow<OnlineState>(OnlineState.Idle)
+    val online: StateFlow<OnlineState> = _online
+
+    /**
+     * Soumissions explicites uniquement : OFF interdit la recherche au fil de la frappe
+     * (10 req/min). Le debounce absorbe les doubles appuis ; `collectLatest` annule la requête
+     * précédente.
+     */
+    private val submissions = MutableSharedFlow<String>(extraBufferCapacity = 1)
+
+    init {
+        viewModelScope.launch {
+            submissions.debounce(SUBMIT_DEBOUNCE_MS).collectLatest { runOnlineSearch(it) }
+        }
+    }
+
+    fun submitOnline() {
+        val q = query.value.trim()
+        if (q.length < MIN_ONLINE_LENGTH) return
+        _online.value = OnlineState.Loading
+        submissions.tryEmit(q)
+    }
+
+    private suspend fun runOnlineSearch(q: String) {
+        if (!settings.offEnabled.first()) {
+            _online.value = OnlineState.Disabled
+            return
+        }
+        _online.value = if (Gtin.looksLikeBarcode(q)) {
+            when (val lookup = resolveBarcode(q)) {
+                is BarcodeLookup.Local -> {
+                    selectFood(lookup.food)
+                    OnlineState.Idle
+                }
+                is BarcodeLookup.Remote -> OnlineState.Results(listOf(lookup.food))
+                BarcodeLookup.NotFound -> OnlineState.Empty
+                is BarcodeLookup.RateLimited -> OnlineState.RateLimited(secondsFor(lookup.retryAfterMs))
+                BarcodeLookup.Unavailable -> OnlineState.Unavailable
+            }
+        } else {
+            when (val result = remote.search(q)) {
+                is RemoteResult.Success ->
+                    if (result.value.isEmpty()) OnlineState.Empty else OnlineState.Results(result.value)
+                RemoteResult.NotFound -> OnlineState.Empty
+                is RemoteResult.RateLimited -> OnlineState.RateLimited(secondsFor(result.retryAfterMs))
+                RemoteResult.Unavailable -> OnlineState.Unavailable
+                RemoteResult.Disabled -> OnlineState.Disabled
+            }
+        }
+    }
+
+    /** Copie le produit distant dans `food` puis ouvre le choix de quantité. */
+    fun chooseRemote(item: RemoteFood) {
+        viewModelScope.launch {
+            importRemoteFood(item)?.let { selectFood(it) } ?: run { _online.value = OnlineState.Unavailable }
+        }
+    }
+
+    private fun secondsFor(ms: Long): Int = ((ms + 999) / 1_000).toInt().coerceAtLeast(1)
+
     fun setQuery(value: String) {
         query.value = value
     }
@@ -74,6 +162,11 @@ class AddEntryViewModel @Inject constructor(
             logFood(route.epochDay, route.mealSlotId, food, quantityBase, portionId, portionCount)
             onDone()
         }
+    }
+
+    private companion object {
+        const val SUBMIT_DEBOUNCE_MS = 400L
+        const val MIN_ONLINE_LENGTH = 3
     }
 
     fun addRecipe(recipe: Recipe, servings: Double, onDone: () -> Unit) {

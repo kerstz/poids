@@ -8,6 +8,7 @@ import org.tally.data.db.dao.FoodDao
 import org.tally.data.db.dao.GoalDao
 import org.tally.data.db.dao.JournalDao
 import org.tally.data.db.dao.MealSlotDao
+import org.tally.data.db.dao.OffCacheDao
 import org.tally.data.db.dao.MeasurementDao
 import org.tally.data.db.dao.RecipeDao
 import org.tally.data.db.entity.AppSettingEntity
@@ -49,6 +50,7 @@ abstract class TallyDatabase : RoomDatabase() {
     abstract fun journalDao(): JournalDao
     abstract fun mealSlotDao(): MealSlotDao
     abstract fun goalDao(): GoalDao
+    abstract fun offCacheDao(): OffCacheDao
 
     companion object {
         const val NAME = "tally.db"

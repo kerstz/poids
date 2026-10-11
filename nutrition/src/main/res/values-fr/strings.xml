@@ -55,4 +55,13 @@
     <string name="recipe_add_ingredient">Ajouter un ingrédient</string>
     <string name="recipe_quantity">Quantité (g / ml)</string>
     <string name="recipe_archive">Archiver cette recette</string>
+    <string name="add_tab_online">En ligne</string>
+    <string name="add_search_online">Chercher sur Open Food Facts</string>
+    <string name="online_hint">Saisis au moins 3 caractères ou un code-barres, puis appuie sur Rechercher.</string>
+    <string name="online_loading">Recherche…</string>
+    <string name="online_empty">Aucun produit exploitable trouvé.</string>
+    <string name="online_unavailable">Open Food Facts est injoignable. Vérifie ta connexion.</string>
+    <string name="online_disabled">Les recherches en ligne sont désactivées dans les Réglages.</string>
+    <string name="online_rate_limited">Trop de requêtes. Réessaie dans %1$d s.</string>
+    <string name="online_attribution">Données Open Food Facts, disponibles sous licence Open Database License (ODbL).</string>
 </resources>

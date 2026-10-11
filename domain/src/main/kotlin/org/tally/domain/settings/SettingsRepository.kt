@@ -9,6 +9,10 @@ import org.tally.core.unit.MassUnit
 interface SettingsRepository {
     val unitPreferences: Flow<UnitPreferences>
 
+    /** Requêtes réseau vers Open Food Facts autorisées (défaut : oui). */
+    val offEnabled: Flow<Boolean>
+
+    suspend fun setOffEnabled(enabled: Boolean)
     suspend fun setMassUnit(unit: MassUnit)
     suspend fun setLengthUnit(unit: LengthUnit)
     suspend fun setDistanceUnit(unit: DistanceUnit)
