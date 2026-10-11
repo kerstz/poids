@@ -37,6 +37,9 @@ interface JournalDao {
     @Insert
     suspend fun insert(entry: JournalEntryEntity): Long
 
+    @Query("SELECT * FROM journal_entry WHERE id = :id")
+    suspend fun get(id: Long): JournalEntryEntity?
+
     @Query("DELETE FROM journal_entry WHERE id = :id")
     suspend fun delete(id: Long)
 }

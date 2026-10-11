@@ -6,7 +6,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -21,9 +23,13 @@ import org.tally.domain.nutrition.JournalRepository
 import org.tally.domain.nutrition.Macros
 import org.tally.domain.nutrition.MealSlot
 import org.tally.domain.nutrition.MealSlotRepository
+import org.tally.domain.nutrition.NewJournalEntry
 import org.tally.domain.nutrition.NutritionCalc
 
 data class SlotSection(val slot: MealSlot, val items: List<JournalItem>, val total: Macros)
+
+/** Entrée supprimée, réinsérable via [JournalViewModel.undo]. */
+data class DeletedEntry(val name: String, val snapshot: NewJournalEntry)
 
 data class JournalUiState(
     val epochDay: Long = LocalDate.now().toEpochDay(),
@@ -65,8 +71,19 @@ class JournalViewModel @Inject constructor(
     fun nextDay() = day.update { it + 1 }
     fun today() { day.value = LocalDate.now().toEpochDay() }
 
-    fun delete(id: Long) {
-        viewModelScope.launch { journal.delete(id) }
+    private val deletedEvents = MutableSharedFlow<DeletedEntry>(extraBufferCapacity = 8)
+    val deleted: SharedFlow<DeletedEntry> = deletedEvents
+
+    fun delete(item: JournalItem) {
+        viewModelScope.launch {
+            val snapshot = journal.snapshot(item.id)
+            journal.delete(item.id)
+            if (snapshot != null) deletedEvents.emit(DeletedEntry(item.name, snapshot))
+        }
+    }
+
+    fun undo(entry: DeletedEntry) {
+        viewModelScope.launch { journal.add(entry.snapshot) }
     }
 
     fun setEnergyTarget(kcal: Double) {

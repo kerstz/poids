@@ -57,3 +57,18 @@ Délègue avec l'outil Agent en précisant le modèle :
 - Signale incertitudes, limites et décisions à prendre
 - Aucune suppression ni modification irréversible sans validation
 - git clone --depth 1 pour les audits
+
+## UI
+
+Spec complète : `docs/UI.md`. Composants et tokens : `:core-ui` (`TallyTheme.colors/type/spacing/dimens`).
+- OLED par défaut (fond `#000000`), un seul accent, pas d'ombre ; macros toujours avec libellé.
+- Features : aucune couleur, dp/sp, forme, `tween`/`spring` ou `material.icons` en dur (`checkDesignTokens`, baseline dans `config/design-tokens-baseline.txt`).
+- Retirer l'écran de la baseline à sa migration ; exception ponctuelle `// design-ok: raison`.
+- Chiffres : styles `TallyTheme.type.number*` (tnum). Animations : `tallyAnimationSpec()` uniquement.
+- Écran = `XxxScreen` (ViewModel) + `XxxContent(state, callbacks)` sans état, testable en capture.
+- Saisies en `QuantitySheet` (bottom sheet), jamais `AlertDialog`. Une action principale (FAB) par écran.
+- Suppression = swipe + snackbar « Annuler » (`FoodRow`), jamais de confirmation. États vides avec action.
+- Icônes : vector drawables dans `:core-ui/res/drawable` via `TallyIcons` (pas de material-icons).
+- Cibles ≥ 48 dp, grille 4 dp, police système jusqu'à 200 %, `contentDescription` partout.
+- Captures : `src/test/screenshots/*_{oled,light,font200}.png` ; `./gradlew testDebugUnitTest` (record), `-Proborazzi.mode=verify`.
+- Graphes : Vico uniquement via `:core-ui` ; jauges/barres en Compose simple.
