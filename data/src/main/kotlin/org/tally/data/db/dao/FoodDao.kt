@@ -25,6 +25,12 @@ interface FoodDao {
     @Query("SELECT * FROM food WHERE barcode = :barcode AND archived_at IS NULL ORDER BY id DESC LIMIT 1")
     suspend fun findByBarcode(barcode: String): FoodEntity?
 
+    @Query("SELECT * FROM food WHERE barcode = :barcode LIMIT 1")
+    suspend fun findByBarcodeAny(barcode: String): FoodEntity?
+
+    @Query("UPDATE food SET archived_at = NULL, updated_at = :at WHERE id = :id")
+    suspend fun unarchive(id: Long, at: Long)
+
     @Query("SELECT * FROM food_portion WHERE food_id = :foodId ORDER BY id")
     suspend fun portionsFor(foodId: Long): List<FoodPortionEntity>
 

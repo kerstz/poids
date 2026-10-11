@@ -12,7 +12,7 @@ data class JournalRow(
     val id: Long,
     @ColumnInfo(name = "meal_slot_id") val mealSlotId: Long,
     @ColumnInfo(name = "recipe_id") val recipeId: Long?,
-    val name: String?,
+    val name: String,
     @ColumnInfo(name = "quantity_base") val quantityBase: Double,
     @ColumnInfo(name = "quantity_unit") val quantityUnit: QuantityUnit,
     @ColumnInfo(name = "portion_count") val portionCount: Double?,
@@ -20,16 +20,19 @@ data class JournalRow(
     @ColumnInfo(name = "protein_g") val proteinG: Double,
     @ColumnInfo(name = "carbs_g") val carbsG: Double,
     @ColumnInfo(name = "fat_g") val fatG: Double,
+    @ColumnInfo(name = "sugars_g") val sugarsG: Double?,
+    @ColumnInfo(name = "sat_fat_g") val satFatG: Double?,
+    @ColumnInfo(name = "fiber_g") val fiberG: Double?,
+    @ColumnInfo(name = "salt_g") val saltG: Double?,
 )
 
 @Dao
 interface JournalDao {
     @Query(
-        "SELECT j.id, j.meal_slot_id, j.recipe_id, COALESCE(f.name, r.name) AS name, " +
-            "j.quantity_base, j.quantity_unit, j.portion_count, j.energy_kcal, j.protein_g, j.carbs_g, j.fat_g " +
+        "SELECT j.id, j.meal_slot_id, j.recipe_id, j.name, " +
+            "j.quantity_base, j.quantity_unit, j.portion_count, j.energy_kcal, j.protein_g, j.carbs_g, j.fat_g, " +
+            "j.sugars_g, j.sat_fat_g, j.fiber_g, j.salt_g " +
             "FROM journal_entry j " +
-            "LEFT JOIN food f ON f.id = j.food_id " +
-            "LEFT JOIN recipe r ON r.id = j.recipe_id " +
             "WHERE j.local_date = :epochDay ORDER BY j.logged_at, j.id",
     )
     fun observeDay(epochDay: Long): Flow<List<JournalRow>>

@@ -77,6 +77,8 @@ class SaveUseCasesTest {
         override fun search(query: String): Flow<List<Food>> = emptyFlow()
         override suspend fun get(id: Long): FoodWithPortions? = null
         override suspend fun findByBarcode(barcode: String): Food? = null
+        override suspend fun findByBarcodeAny(barcode: String): Food? = null
+        override suspend fun unarchive(id: Long) = Unit
         override suspend fun save(food: Food, portions: List<FoodPortion>): Long { saved++; return 1 }
         override suspend fun archive(id: Long) = Unit
     }

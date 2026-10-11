@@ -39,7 +39,7 @@ import org.tally.data.db.entity.RecipeIngredientEntity
         AppSettingEntity::class,
         OffProductCacheEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class TallyDatabase : RoomDatabase() {
@@ -54,6 +54,8 @@ abstract class TallyDatabase : RoomDatabase() {
 
     companion object {
         const val NAME = "tally.db"
+
+        val ALL_MIGRATIONS = arrayOf(Migrations.MIGRATION_1_2)
 
         /** Données de référence insérées à la création : créneaux de repas et types de mesure. */
         val seedCallback = object : Callback() {

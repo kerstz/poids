@@ -383,7 +383,7 @@ org.<app>.nutrition
 | energy_kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g, salt_g | REAL | **pour 100 g/ml** ; energy/protein/carbs/fat NOT NULL, autres nullable ; `CHECK(>=0)` |
 | archived_at | INTEGER | nullable |
 | created_at, updated_at | INTEGER | — |
-- Index : `barcode` (non unique : un code peut avoir une version archivée), `(archived_at, name)`.
+- Index : `barcode` **unique** (v2 ; NULL multiples permis, archivés inclus — un code = une ligne, le ré-import d'un archivé désarchive et rafraîchit la même ligne), `(archived_at, name)`.
 - FTS : `food_fts` (`@Fts4`, contentEntity=food, `name, brand`, tokenizer `unicode61 remove_diacritics`) pour recherche hors ligne.
 - [D] Pas de colonnes micronutriments en v1.
 
