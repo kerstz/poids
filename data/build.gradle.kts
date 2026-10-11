@@ -1,69 +1,28 @@
-// :data — couche de données. Room (entités, DAO, base), repositories, DI Hilt.
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.hilt)
+    id("tally.android.library")
+    id("tally.android.hilt")
 }
 
 android {
-    namespace = "com.poids.data"
-    compileSdk = 36
+    namespace = "org.tally.data"
 
-    defaultConfig {
-        minSdk = 26
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
     }
 }
 
-kotlin {
-    jvmToolchain(17)
-}
-
-// Export du schéma Room (versionné, utile pour les migrations et les tests).
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 dependencies {
+    implementation(project(":core"))
     implementation(project(":domain"))
-
-    implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.room.runtime)
+    ksp(libs.room.compiler)
 
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
-
-    // Réseau : API Open Food Facts (nutrition)
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.okhttp)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.json)
-    implementation(libs.kotlinx.serialization.json)
-
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-
-    testImplementation(libs.bundles.test.jvm)
-    testRuntimeOnly(libs.junit.platform.launcher)
-    androidTestImplementation(libs.androidx.room.testing)
-    androidTestImplementation(libs.androidx.test.ext.junit)
-}
-
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

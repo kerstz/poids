@@ -1,109 +1,73 @@
-// :app — application Android. UI Compose, navigation, thème M3, DI Hilt.
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.hilt)
+    id("tally.android.application")
 }
 
 android {
-    namespace = "com.poids"
-    compileSdk = 36
+    namespace = "org.tally.app"
 
     defaultConfig {
-        applicationId = "com.poids"
-        minSdk = 26
-        targetSdk = 36
+        applicationId = "org.tally.app"
         versionCode = 1
         versionName = "0.1.0"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables { useSupportLibrary = true }
     }
 
     buildTypes {
-        debug {
-            applicationIdSuffix = ".debug"
-            isDebuggable = true
-        }
         release {
-            // R8 + shrinkResources seront activés à l'étape pré-release.
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
-    buildFeatures {
-        compose = true
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    packaging {
-        resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
-    }
-
-    // F-Droid / builds reproductibles : retire le bloc chiffré Google des dépendances.
+    // F-Droid : pas de bloc de métadonnées de dépendances signé par Google.
     dependenciesInfo {
         includeInApk = false
         includeInBundle = false
     }
 }
 
-kotlin {
-    jvmToolchain(17)
-}
-
 dependencies {
+    implementation(project(":core"))
     implementation(project(":domain"))
     implementation(project(":data"))
+    implementation(project(":core-ui"))
+    implementation(project(":nutrition"))
+    implementation(project(":body"))
+    implementation(project(":activity"))
 
-    // Compose (BOM = versions alignées)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.bundles.compose)
-    implementation(libs.androidx.compose.material.icons.extended)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-
-    // AndroidX
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.core.splashscreen)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-
-    // Rappels planifiés (pesée quotidienne) + préférences
-    implementation(libs.androidx.work.runtime.ktx)
-    implementation(libs.androidx.datastore.preferences)
-
-    // DI
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-    implementation(libs.hilt.navigation.compose)
-
-    // Images (photos de repas)
-    implementation(libs.coil.compose)
-
-    // Scan code-barres (dégooglisé, pas de ML Kit)
-    implementation(libs.zxing.android.embedded)
-
-    // Tests JVM
-    testImplementation(libs.bundles.test.jvm)
-    testRuntimeOnly(libs.junit.platform.launcher)
-
-    // Tests instrumentés
-    androidTestImplementation(libs.androidx.test.ext.junit)
-    androidTestImplementation(libs.androidx.test.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.compose.material.icons.core)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 }
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
+// Garde-fou permissions : le manifeste release fusionné doit rester dans la liste blanche.
+val checkPermissions = tasks.register("checkPermissions") {
+    group = "verification"
+    description = "Compare les permissions du manifeste release fusionné à config/permissions-allowlist.txt."
+    dependsOn("processReleaseManifest")
+    val manifest = layout.buildDirectory.file(
+        "intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml",
+    )
+    val allowlist = rootProject.layout.projectDirectory.file("config/permissions-allowlist.txt")
+    val applicationId = "org.tally.app"
+    doLast {
+        val allowed = allowlist.asFile.readLines()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() && !it.startsWith("#") }
+            .map { it.replace("\${applicationId}", applicationId) }
+            .toSet()
+        val used = Regex("""<uses-permission[^>]*android:name="([^"]+)"""")
+            .findAll(manifest.get().asFile.readText())
+            .map { it.groupValues[1] }
+            .toSet()
+        val extra = used - allowed
+        if (extra.isNotEmpty()) {
+            throw GradleException("Permissions non autorisées dans le manifeste release: $extra")
+        }
+        logger.lifecycle("Permissions OK: ${used.sorted()}")
+    }
 }

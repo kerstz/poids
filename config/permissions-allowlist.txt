@@ -1,0 +1,4 @@
+# Liste blanche des permissions du manifeste release fusionné.
+# Une permission par ligne. ${applicationId} = org.tally.app
+# Toute permission absente de cette liste fait échouer :app:checkPermissions.
+${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION

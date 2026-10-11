@@ -1,0 +1,35 @@
+package org.tally.domain.nutrition
+
+import kotlinx.coroutines.flow.Flow
+
+interface FoodRepository {
+    /** Aliments non archivés dont le nom/la marque contient [query] (vide = tous), triés par nom. */
+    fun search(query: String): Flow<List<Food>>
+    suspend fun get(id: Long): FoodWithPortions?
+    suspend fun save(food: Food, portions: List<FoodPortion>): Long
+    /** Archivage : l'aliment disparaît des recherches mais l'historique reste intact. */
+    suspend fun archive(id: Long)
+}
+
+interface RecipeRepository {
+    fun observeRecipes(): Flow<List<Recipe>>
+    suspend fun get(id: Long): Recipe?
+    suspend fun save(recipe: Recipe): Long
+    suspend fun archive(id: Long)
+}
+
+interface JournalRepository {
+    fun observeDay(epochDay: Long): Flow<List<JournalItem>>
+    suspend fun add(entry: NewJournalEntry): Long
+    suspend fun delete(id: Long)
+}
+
+interface MealSlotRepository {
+    fun observeSlots(): Flow<List<MealSlot>>
+}
+
+interface GoalRepository {
+    fun observeTargets(epochDay: Long): Flow<DayTargets>
+    /** Objectif énergétique fixe applicable à partir de [fromEpochDay] (historisé). */
+    suspend fun setEnergyTarget(kcal: Double, fromEpochDay: Long)
+}

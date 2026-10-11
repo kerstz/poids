@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="weight_empty">No weigh-in yet. Tap + to add one.</string>
+    <string name="weight_add">Add weight</string>
+    <string name="weight_edit">Edit weight</string>
+    <string name="weight_delete">Delete weigh-in</string>
+    <string name="weight_save">Save</string>
+    <string name="weight_cancel">Cancel</string>
+    <string name="weight_invalid">Value out of range</string>
+</resources>

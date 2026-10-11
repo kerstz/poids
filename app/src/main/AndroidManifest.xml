@@ -1,68 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Réseau : requêtes API Open Food Facts (nutrition). Tout le reste est local. -->
-    <uses-permission android:name="android.permission.INTERNET" />
-
-    <!-- Activité physique : podomètre -->
-    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
-
-    <!-- Localisation GPS (demandées au runtime, en contexte) -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-
-    <!-- Caméra : scan code-barres (ZXing) -->
-    <uses-permission android:name="android.permission.CAMERA" />
-
-    <!-- Notification du service de suivi (Android 13+) -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
-    <!-- Service de premier plan pour le suivi GPS (Android 14+ : type location) -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
-
-    <!-- Matériel optionnel : l'app reste installable sans -->
-    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
-    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
-    <uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false" />
-    <uses-feature android:name="android.hardware.sensor.barometer" android:required="false" />
+    <!-- Aucune permission au jalon 1 (liste blanche : config/permissions-allowlist.txt). -->
 
     <application
-        android:name=".PoidsApplication"
+        android:name=".TallyApplication"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Poids"
-        android:localeConfig="@xml/locales_config"
-        tools:targetApi="31">
-
+        android:theme="@style/Theme.Tally">
         <activity
             android:name=".MainActivity"
-            android:exported="true"
-            android:theme="@style/Theme.Poids">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <service
-            android:name=".tracking.ActivityTrackingService"
-            android:exported="false"
-            android:foregroundServiceType="location" />
-
-        <!-- Persiste la langue choisie (AppCompat per-app locales). -->
-        <service
-            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
-            android:enabled="false"
-            android:exported="false">
-            <meta-data
-                android:name="autoStoreLocales"
-                android:value="true" />
-        </service>
     </application>
+
 </manifest>
