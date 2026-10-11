@@ -34,7 +34,7 @@ import org.tally.domain.settings.UnitPreferences
 
 private const val PRODUCT_JSON = """{"code":"3017620422003","status":1,"product":{"code":"3017620422003",
 "product_name":"Nutella","brands":"Nutella, Ferrero","serving_quantity":"15",
-"nutriments":{"energy-kcal_100g":539,"proteins_100g":6.3,"carbohydrates_100g":57.5,"fat_100g":30.9},
+"nutriments":{"energy-kcal_100g":539,"proteins_100g":6.3,"carbohydrates_100g":57.5,"fat_100g":30.9,"sugars_100g":56.3,"saturated-fat_100g":10.6,"fiber_100g":0,"salt_100g":0.107},
 "last_modified_t":1791733889}}"""
 
 private const val SEARCH_JSON = """{"hits":[
@@ -113,6 +113,10 @@ class OffRemoteTest {
         assertEquals("Nutella", result.value.brand)
         assertEquals(539.0, result.value.per100.energyKcal, 0.0)
         assertEquals(15.0, result.value.servingQuantityG!!, 0.0)
+        assertEquals(56.3, result.value.per100Detail.sugarsG!!, 0.0)
+        assertEquals(10.6, result.value.per100Detail.satFatG!!, 0.0)
+        assertEquals(0.0, result.value.per100Detail.fiberG!!, 0.0)
+        assertEquals(0.107, result.value.per100Detail.saltG!!, 0.0)
         assertEquals("Tally/test (Android)", network.requests.single().header("User-Agent"))
         assertTrue(network.requests.single().url.toString().startsWith("https://world.openfoodfacts.org/api/v2/product/"))
     }

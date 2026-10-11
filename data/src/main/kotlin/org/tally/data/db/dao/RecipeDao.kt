@@ -19,11 +19,15 @@ data class IngredientRow(
     @ColumnInfo(name = "protein_g") val proteinG: Double,
     @ColumnInfo(name = "carbs_g") val carbsG: Double,
     @ColumnInfo(name = "fat_g") val fatG: Double,
+    @ColumnInfo(name = "sugars_g") val sugarsG: Double?,
+    @ColumnInfo(name = "sat_fat_g") val satFatG: Double?,
+    @ColumnInfo(name = "fiber_g") val fiberG: Double?,
+    @ColumnInfo(name = "salt_g") val saltG: Double?,
 )
 
 private const val INGREDIENT_SELECT =
     "SELECT i.recipe_id, i.food_id, f.name AS food_name, i.quantity_base, " +
-        "f.energy_kcal, f.protein_g, f.carbs_g, f.fat_g " +
+        "f.energy_kcal, f.protein_g, f.carbs_g, f.fat_g, f.sugars_g, f.sat_fat_g, f.fiber_g, f.salt_g " +
         "FROM recipe_ingredient i JOIN food f ON f.id = i.food_id "
 
 @Dao

@@ -25,6 +25,7 @@ import org.tally.domain.nutrition.MealSlot
 import org.tally.domain.nutrition.MealSlotRepository
 import org.tally.domain.nutrition.NewJournalEntry
 import org.tally.domain.nutrition.NutritionCalc
+import org.tally.domain.nutrition.RestoreJournalEntry
 
 data class SlotSection(val slot: MealSlot, val items: List<JournalItem>, val total: Macros)
 
@@ -42,6 +43,7 @@ data class JournalUiState(
 @HiltViewModel
 class JournalViewModel @Inject constructor(
     private val journal: JournalRepository,
+    private val restoreEntry: RestoreJournalEntry,
     private val goals: GoalRepository,
     slots: MealSlotRepository,
 ) : ViewModel() {
@@ -83,7 +85,7 @@ class JournalViewModel @Inject constructor(
     }
 
     fun undo(entry: DeletedEntry) {
-        viewModelScope.launch { journal.add(entry.snapshot) }
+        viewModelScope.launch { restoreEntry(entry.snapshot) }
     }
 
     fun setEnergyTarget(kcal: Double) {

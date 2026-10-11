@@ -11,6 +11,7 @@ import org.tally.data.db.entity.OffProductCacheEntity
 import org.tally.domain.model.OffCacheStatus
 import org.tally.domain.nutrition.FoodRemoteSource
 import org.tally.domain.nutrition.Macros
+import org.tally.domain.nutrition.NutrientDetail
 import org.tally.domain.nutrition.RemoteFood
 import org.tally.domain.nutrition.RemoteResult
 import org.tally.domain.settings.SettingsRepository
@@ -98,14 +99,22 @@ internal class CachedOffRemoteSource @Inject constructor(
         val fatG: Double,
         val servingG: Double?,
         val lastModified: Long?,
+        val sugarsG: Double? = null,
+        val satFatG: Double? = null,
+        val fiberG: Double? = null,
+        val saltG: Double? = null,
     ) {
-        fun toDomain() = RemoteFood(barcode, name, brand, Macros(kcal, proteinG, carbsG, fatG), servingG, lastModified)
+        fun toDomain() = RemoteFood(
+            barcode, name, brand, Macros(kcal, proteinG, carbsG, fatG), servingG, lastModified,
+            NutrientDetail(sugarsG, satFatG, fiberG, saltG),
+        )
 
         companion object {
             fun from(f: RemoteFood) = CachedProduct(
                 f.barcode, f.name, f.brand,
                 f.per100.energyKcal, f.per100.proteinG, f.per100.carbsG, f.per100.fatG,
                 f.servingQuantityG, f.lastModifiedEpochSec,
+                f.per100Detail.sugarsG, f.per100Detail.satFatG, f.per100Detail.fiberG, f.per100Detail.saltG,
             )
         }
     }

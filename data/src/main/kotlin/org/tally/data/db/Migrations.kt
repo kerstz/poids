@@ -5,7 +5,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 object Migrations {
     /**
-     * v1 → v2 : journal figé (nom, marque, nutriments optionnels), `food.barcode` unique.
+     * v1 → v2 : journal figé (nom, marque, colonnes de détail à NULL), `food.barcode` unique.
      * Aucune suppression de ligne : les doublons de code-barres perdent seulement leur code.
      */
     val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -23,17 +23,10 @@ object Migrations {
                     "(SELECT name FROM recipe WHERE id = journal_entry.recipe_id), ''), " +
                     "brand = (SELECT brand FROM food WHERE id = journal_entry.food_id)",
             )
-            // Nutriments optionnels : seulement si l'aliment n'a pas changé depuis (énergie recalculée égale).
-            db.execSQL(
-                "UPDATE journal_entry SET " +
-                    "sugars_g = (SELECT f.sugars_g * journal_entry.quantity_base / 100.0 FROM food f WHERE f.id = journal_entry.food_id), " +
-                    "sat_fat_g = (SELECT f.sat_fat_g * journal_entry.quantity_base / 100.0 FROM food f WHERE f.id = journal_entry.food_id), " +
-                    "fiber_g = (SELECT f.fiber_g * journal_entry.quantity_base / 100.0 FROM food f WHERE f.id = journal_entry.food_id), " +
-                    "salt_g = (SELECT f.salt_g * journal_entry.quantity_base / 100.0 FROM food f WHERE f.id = journal_entry.food_id) " +
-                    "WHERE food_id IS NOT NULL AND quantity_unit IN ('G', 'ML') " +
-                    "AND EXISTS (SELECT 1 FROM food f WHERE f.id = journal_entry.food_id " +
-                    "AND ABS(f.energy_kcal * journal_entry.quantity_base / 100.0 - journal_entry.energy_kcal) < 0.01)",
-            )
+            // Nutriments optionnels laissés NULL (« inconnu ») : un backfill déduit pourrait être faux.
+            // GTIN-13 canonique avant la dédup : UPC-A (12) et EAN-13 « 0 »+UPC deviennent le même code.
+            db.execSQL("UPDATE food SET barcode = '0' || barcode WHERE length(barcode) = 12")
+            db.execSQL("UPDATE food SET barcode = substr(barcode, 2) WHERE length(barcode) = 14 AND barcode LIKE '0%'")
             // Doublons : on garde la ligne non archivée, puis la plus récente, puis le plus grand id.
             db.execSQL(
                 "UPDATE food SET barcode = NULL WHERE barcode IS NOT NULL AND id <> (" +

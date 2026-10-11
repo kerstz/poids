@@ -54,6 +54,9 @@ class MigrationTest {
             execSQL(
                 "INSERT INTO recipe (id, name, servings, created_at, updated_at) VALUES (1, 'Soupe', 2, 1, 1)",
             )
+            food(6, "UPC-A", "123456789012", updatedAt = 3)            // 12 chiffres
+            food(7, "EAN-13", "0123456789012", updatedAt = 4)          // même produit en 13 chiffres
+            execSQL("UPDATE food SET base_unit = 'ML' WHERE id = 5")
             entry(1, foodId = 1, recipeId = null, qty = 200.0, unit = "G", kcal = 120.0)  // énergie cohérente
             entry(2, foodId = 5, recipeId = null, qty = 100.0, unit = "G", kcal = 999.0)  // aliment modifié depuis
             entry(3, foodId = null, recipeId = 1, qty = 1.0, unit = "SERVING", kcal = 80.0)
@@ -63,7 +66,11 @@ class MigrationTest {
         val db = helper.runMigrationsAndValidate("mig", 2, true, Migrations.MIGRATION_1_2)
 
         fun scalar(sql: String): Long = db.query(sql).use { it.moveToFirst(); it.getLong(0) }
-        assertEquals(5, scalar("SELECT COUNT(*) FROM food"))
+        assertEquals(7, scalar("SELECT COUNT(*) FROM food"))
+        // GTIN-13 : le doublon 12/13 chiffres ne garde le code que sur la ligne la plus récente.
+        assertEquals(7, scalar("SELECT id FROM food WHERE barcode = '0123456789012'"))
+        assertEquals(1, scalar("SELECT COUNT(*) FROM food WHERE id = 6 AND barcode IS NULL"))
+        assertEquals(0, scalar("SELECT COUNT(*) FROM pragma_foreign_key_check"))
         assertEquals(3, scalar("SELECT COUNT(*) FROM journal_entry"))
 
         // Doublon : seule la ligne non archivée garde le code ; l'autre est conservée sans code.
@@ -75,7 +82,7 @@ class MigrationTest {
             it.moveToFirst()
             assertEquals("Yaourt", it.getString(0))
             assertEquals("Marque", it.getString(1))
-            assertEquals(8.0, it.getDouble(2), 1e-9) // 4 g/100 g × 200 g
+            assertEquals(true, it.isNull(2)) // détail laissé inconnu, jamais déduit
         }
         // Aliment modifié depuis : nutriments optionnels laissés inconnus, nom figé quand même.
         db.query("SELECT name, sugars_g FROM journal_entry WHERE id = 2").use {

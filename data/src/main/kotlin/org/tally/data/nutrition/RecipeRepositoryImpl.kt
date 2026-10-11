@@ -10,6 +10,7 @@ import org.tally.data.db.dao.RecipeDao
 import org.tally.data.db.entity.RecipeEntity
 import org.tally.data.db.entity.RecipeIngredientEntity
 import org.tally.domain.nutrition.Macros
+import org.tally.domain.nutrition.NutrientDetail
 import org.tally.domain.nutrition.Recipe
 import org.tally.domain.nutrition.RecipeIngredient
 import org.tally.domain.nutrition.RecipeRepository
@@ -62,5 +63,8 @@ class RecipeRepositoryImpl @Inject constructor(
     override suspend fun archive(id: Long) = dao.archive(id, clock.nowMillis())
 
     private fun IngredientRow.toDomain() =
-        RecipeIngredient(foodId, foodName, quantityBase, Macros(energyKcal, proteinG, carbsG, fatG))
+        RecipeIngredient(
+            foodId, foodName, quantityBase, Macros(energyKcal, proteinG, carbsG, fatG),
+            NutrientDetail(sugarsG, satFatG, fiberG, saltG),
+        )
 }

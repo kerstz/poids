@@ -656,6 +656,10 @@ app_setting (k/v)
 | M5 | Purge du cache | Purge des entrées expirées à chaque écriture du cache (pas de WorkManager) | `CachedOffRemoteSource` | Évite `RECEIVE_BOOT_COMPLETED` et une dépendance ; écart assumé avec §3.4 |
 | M6 | `quantity_base` | `journal_entry.quantity_unit` (G / ML / SERVING) ajouté ; schéma v1 réécrit (non publié) | commit « Fix : unité explicite… » | R13 / ambiguïté levée |
 | M7 | Écritures | `SaveWeight`, `SaveFood`, `SaveRecipe` : chemin unique validé ; les repositories ne valident pas. Import/restauration (jalon 7) devront les utiliser | `domain/` | Point à respecter au jalon 7 |
+| M8 | Archivage / ré-import (F3, F4) | `FoodRepository.save` applique `Food.isArchived` ; `unarchive` supprimé. Le ré-import d'un archivé écrase ce qu'OFF fournit (nom, marque, macros, détail, date) et garde id, unité, densité, portions | `ImportRemoteFood` | Une seule écriture : atomique |
+| M9 | Détail nutritionnel (F6, F7) | Somme stricte : inconnu si un terme est inconnu ; recettes : détail calculé depuis les ingrédients ; OFF : `sugars/saturated-fat/fiber/salt_100g` lus | `NutrientDetail`, `Recipe.perServingDetail`, `OffApi` | — |
+| M10 | Migration v2 non publiée (F8, F10) | Pas de backfill déduit du détail (NULL = inconnu) ; code-barres normalisés GTIN-13 avant dédup. Un appareil de dev déjà en v2 doit être réinstallé | `Migrations.kt`, `Gtin.normalize` | Aucune release distribuée (`git tag` vide) |
+| M11 | Annulation journal (F9) | Use case `RestoreJournalEntry` : portion disparue → `portion_id = NULL` | `LogUseCases.kt` | Plus de violation de FK |
 
 ## 8. Données de référence et licences (jalon 2, 2026-10-11)
 

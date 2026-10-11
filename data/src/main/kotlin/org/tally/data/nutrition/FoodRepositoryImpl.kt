@@ -5,6 +5,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.tally.core.barcode.Gtin
 import org.tally.core.time.AppClock
 import org.tally.data.db.dao.FoodDao
 import org.tally.data.db.entity.FoodEntity
@@ -33,11 +34,11 @@ class FoodRepositoryImpl @Inject constructor(
         return FoodWithPortions(entity.toDomain(), portions)
     }
 
-    override suspend fun findByBarcode(barcode: String): Food? = dao.findByBarcode(barcode)?.toDomain()
+    override suspend fun findByBarcode(barcode: String): Food? =
+        dao.findByBarcode(Gtin.normalize(barcode))?.toDomain()
 
-    override suspend fun findByBarcodeAny(barcode: String): Food? = dao.findByBarcodeAny(barcode)?.toDomain()
-
-    override suspend fun unarchive(id: Long) = dao.unarchive(id, clock.nowMillis())
+    override suspend fun findByBarcodeAny(barcode: String): Food? =
+        dao.findByBarcodeAny(Gtin.normalize(barcode))?.toDomain()
 
     override suspend fun save(food: Food, portions: List<FoodPortion>): Long {
         val now = clock.nowMillis()
@@ -46,18 +47,17 @@ class FoodRepositoryImpl @Inject constructor(
         }
         return if (food.id == 0L) {
             try {
-                dao.insertWithPortions(food.toEntity(createdAt = now, updatedAt = now), portionEntities)
+                val entity = food.toEntity(createdAt = now, updatedAt = now)
+                dao.insertWithPortions(entity.copy(archivedAt = if (food.isArchived) now else null), portionEntities)
             } catch (e: SQLiteConstraintException) {
                 // Import concurrent du même code-barres (index unique) : on réutilise la ligne gagnante.
-                food.barcode?.let { dao.findByBarcodeAny(it)?.id } ?: throw e
+                food.barcode?.let { dao.findByBarcodeAny(Gtin.normalize(it))?.id } ?: throw e
             }
         } else {
             val existing = requireNotNull(dao.get(food.id)) { "aliment ${food.id} introuvable" }
             dao.updateWithPortions(
-                // `off_last_modified` et l'archivage ne sont pas portés par le domaine : repris tels quels.
                 food.toEntity(createdAt = existing.createdAt, updatedAt = now).copy(
-                    archivedAt = existing.archivedAt,
-                    offLastModified = existing.offLastModified,
+                    archivedAt = if (food.isArchived) existing.archivedAt ?: now else null,
                 ),
                 portionEntities,
             )
@@ -71,8 +71,9 @@ class FoodRepositoryImpl @Inject constructor(
         id = id,
         name = name.trim(),
         brand = brand?.trim()?.ifEmpty { null },
-        barcode = barcode,
+        barcode = barcode?.let(Gtin::normalize),
         source = source,
+        offLastModified = offLastModified,
         baseUnit = baseUnit,
         densityGPerMl = densityGPerMl,
         energyKcal = per100.energyKcal,
@@ -97,6 +98,7 @@ class FoodRepositoryImpl @Inject constructor(
         per100 = Macros(energyKcal, proteinG, carbsG, fatG),
         per100Detail = NutrientDetail(sugarsG, satFatG, fiberG, saltG),
         densityGPerMl = densityGPerMl,
+        offLastModified = offLastModified,
         isArchived = archivedAt != null,
     )
 
