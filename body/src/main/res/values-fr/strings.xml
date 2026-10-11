@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="weight_empty">Aucune pesée. Appuie sur + pour en ajouter une.</string>
+    <string name="weight_empty_title">Aucune pesée</string>
+    <string name="weight_empty_body">Ajoute ton poids pour suivre son évolution.</string>
     <string name="weight_add">Ajouter un poids</string>
     <string name="weight_edit">Modifier le poids</string>
+    <string name="weight_label">Poids</string>
     <string name="weight_delete">Supprimer la pesée</string>
+    <string name="weight_deleted">Pesée supprimée</string>
+    <string name="weight_undo">Annuler</string>
     <string name="weight_save">Enregistrer</string>
-    <string name="weight_cancel">Annuler</string>
     <string name="weight_invalid">Valeur hors limites</string>
+    <string name="weight_chart_summary">Évolution du poids : de %1$s à %2$s %3$s</string>
 </resources>

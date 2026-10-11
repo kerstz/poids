@@ -170,3 +170,8 @@ Fait : thème (`TallyTheme(mode, dynamicAccent)`), tokens, `TallyIcons` (5 icôn
 - Réglage thème (OLED/Clair/Système) et dynamic accent : API prête, pas encore câblée dans Réglages. L'app tourne en OLED fixe.
 - Réglages en icône + 3 onglets : non fait (touche `:app`, hors pilote). `TopLevelDestination` garde 4 onglets.
 - Le test de captures Journal fixe `fr` ; sheet de saisie visible dans `journal_target_sheet_*`.
+
+### Jalon Corps
+- Écran Poids migré : chiffre clé (dernier poids), graphe Vico thémé (accent, plage serrée sur les données, zoom = contenu entier, dates courtes locales), lignes `DataRow` avec swipe + « Annuler », saisie en `QuantitySheet`, état vide avec action.
+- `DataRow` (core-ui) est la base de `FoodRow` ; `TallyIcons.showChart` ; token `chartHeight`.
+- Dette : graphe sans coupure d'animation « réduire les animations » ; libellés d'axe Y au séparateur décimal `.` (formateur Vico par défaut) ; sélecteur de date = `DatePickerDialog` M3 (pas en bottom sheet).
