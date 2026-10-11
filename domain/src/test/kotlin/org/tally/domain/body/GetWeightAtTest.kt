@@ -48,3 +48,26 @@ class GetWeightAtTest {
         assertFalse(WeightValidation.isValid(Double.NaN))
     }
 }
+
+class SaveWeightTest {
+    private class Recording : WeightRepository {
+        var adds = 0
+        override fun observeEntries(): Flow<List<WeightEntry>> = flowOf(emptyList())
+        override suspend fun add(valueKg: Double, measuredAt: Long, zoneId: String, note: String?): Long { adds++; return 1 }
+        override suspend fun update(entry: WeightEntry) = Unit
+        override suspend fun delete(id: Long) = Unit
+        override suspend fun latestAtOrBefore(instant: Long): WeightEntry? = null
+        override suspend fun firstAfter(instant: Long): WeightEntry? = null
+    }
+
+    @Test
+    fun outOfRangeIsRejectedAndNotWritten() = runTest {
+        val repo = Recording()
+        val useCase = SaveWeight(repo)
+        assertNull(useCase.add(5.0, 1, "UTC"))
+        assertNull(useCase.add(900.0, 1, "UTC"))
+        assertFalse(useCase.update(WeightEntry(1, 1.0, 1, "UTC")))
+        assertEquals(0, repo.adds)
+        assertEquals(1L, useCase.add(72.0, 1, "UTC"))
+    }
+}

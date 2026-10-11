@@ -18,3 +18,6 @@ enum class MeasurementDimension { MASS, LENGTH, PERCENT, ENERGY, COUNT }
 enum class MeasurementSource { MANUAL, BLE, IMPORT }
 
 enum class OffCacheStatus { FOUND, NOT_FOUND }
+
+/** Unité de `journal_entry.quantity_base` : g/ml pour un aliment, SERVING pour une recette. */
+enum class QuantityUnit { G, ML, SERVING }

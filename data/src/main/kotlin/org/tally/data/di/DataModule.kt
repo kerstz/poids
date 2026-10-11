@@ -34,6 +34,9 @@ import org.tally.domain.nutrition.MealSlotRepository
 import org.tally.domain.nutrition.RecipeRepository
 import org.tally.data.settings.SettingsRepositoryImpl
 import org.tally.domain.body.GetWeightAt
+import org.tally.domain.body.SaveWeight
+import org.tally.domain.nutrition.SaveFood
+import org.tally.domain.nutrition.SaveRecipe
 import org.tally.domain.body.WeightRepository
 import org.tally.domain.settings.SettingsRepository
 
@@ -98,6 +101,15 @@ object DataProvidersModule {
 
     @Provides
     fun provideLogRecipe(journal: JournalRepository, clock: AppClock): LogRecipe = LogRecipe(journal, clock)
+
+    @Provides
+    fun provideSaveWeight(repository: WeightRepository): SaveWeight = SaveWeight(repository)
+
+    @Provides
+    fun provideSaveFood(repository: FoodRepository): SaveFood = SaveFood(repository)
+
+    @Provides
+    fun provideSaveRecipe(repository: RecipeRepository): SaveRecipe = SaveRecipe(repository)
 
     @Provides
     fun provideGetWeightAt(repository: WeightRepository): GetWeightAt = GetWeightAt(repository)

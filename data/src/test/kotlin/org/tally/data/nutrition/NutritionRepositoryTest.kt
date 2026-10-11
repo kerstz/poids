@@ -127,6 +127,7 @@ class NutritionRepositoryTest {
         foods.archive(food.id)
         val item = journal.observeDay(20_000).first().single()
         assertTrue(item.isRecipe)
+        assertEquals(org.tally.domain.model.QuantityUnit.SERVING, item.quantityUnit)
         assertEquals("Porridge", item.name)
         assertEquals(222.0, item.macros.energyKcal, 1e-9)
     }

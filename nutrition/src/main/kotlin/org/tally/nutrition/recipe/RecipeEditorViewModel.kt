@@ -25,6 +25,7 @@ import org.tally.domain.nutrition.NutritionCalc
 import org.tally.domain.nutrition.Recipe
 import org.tally.domain.nutrition.RecipeIngredient
 import org.tally.domain.nutrition.RecipeRepository
+import org.tally.domain.nutrition.SaveRecipe
 import org.tally.nutrition.RecipeEditorRoute
 import org.tally.nutrition.common.formatNumber
 import org.tally.nutrition.common.parseDecimal
@@ -34,6 +35,7 @@ import org.tally.nutrition.common.parseDecimal
 class RecipeEditorViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val recipes: RecipeRepository,
+    private val saveRecipe: SaveRecipe,
     private val foods: FoodRepository,
 ) : ViewModel() {
 
@@ -83,14 +85,14 @@ class RecipeEditorViewModel @Inject constructor(
     }
 
     fun save(onDone: () -> Unit) {
-        val s = parseDecimal(servings)
-        if (name.isBlank() || s == null || s <= 0 || ingredients.isEmpty()) {
-            showError = true
-            return
-        }
+        val recipe = Recipe(
+            id = recipeId,
+            name = name,
+            servings = parseDecimal(servings) ?: 0.0,
+            ingredients = ingredients.toList(),
+        )
         viewModelScope.launch {
-            recipes.save(Recipe(id = recipeId, name = name, servings = s, ingredients = ingredients.toList()))
-            onDone()
+            if (saveRecipe(recipe) == null) showError = true else onDone()
         }
     }
 

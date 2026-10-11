@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import org.tally.core.time.AppClock
 import org.tally.core.unit.MassUnit
 import org.tally.domain.body.WeightEntry
+import org.tally.domain.body.SaveWeight
 import org.tally.domain.body.WeightRepository
 import org.tally.domain.body.WeightValidation
 import org.tally.domain.settings.SettingsRepository
@@ -26,6 +27,7 @@ data class WeightUiState(
 @HiltViewModel
 class WeightViewModel @Inject constructor(
     private val repository: WeightRepository,
+    private val saveWeight: SaveWeight,
     settings: SettingsRepository,
     private val clock: AppClock,
 ) : ViewModel() {
@@ -45,10 +47,10 @@ class WeightViewModel @Inject constructor(
         if (!WeightValidation.isValid(kg)) return false
         viewModelScope.launch {
             if (id == null) {
-                repository.add(kg, measuredAt ?: clock.nowMillis(), ZoneId.systemDefault().id)
+                saveWeight.add(kg, measuredAt ?: clock.nowMillis(), ZoneId.systemDefault().id)
             } else {
                 uiState.value.entries.firstOrNull { it.id == id }?.let { existing ->
-                    repository.update(
+                    saveWeight.update(
                         existing.copy(valueKg = kg, measuredAt = measuredAt ?: existing.measuredAt),
                     )
                 }

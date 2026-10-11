@@ -2,6 +2,8 @@ package org.tally.domain.nutrition
 
 import java.time.ZoneId
 import org.tally.core.time.AppClock
+import org.tally.domain.model.BaseUnit
+import org.tally.domain.model.QuantityUnit
 
 /** Ajoute un aliment au journal avec snapshot des nutriments (l'historique ne bouge plus ensuite). */
 class LogFood(
@@ -27,6 +29,7 @@ class LogFood(
                 portionId = portionId,
                 portionCount = portionCount,
                 quantityBase = quantityBase,
+                quantityUnit = if (food.baseUnit == BaseUnit.ML) QuantityUnit.ML else QuantityUnit.G,
                 macros = NutritionCalc.macrosFor(food.per100, quantityBase),
                 loggedAt = clock.nowMillis(),
                 zoneId = zone().id,
@@ -35,7 +38,7 @@ class LogFood(
     }
 }
 
-/** Ajoute [servings] portions d'une recette. `quantityBase` = nombre de portions (recette). */
+/** Ajoute [servings] portions d'une recette (`quantityUnit = SERVING`). */
 class LogRecipe(
     private val journal: JournalRepository,
     private val clock: AppClock,
@@ -57,6 +60,7 @@ class LogRecipe(
                 portionId = null,
                 portionCount = servings,
                 quantityBase = servings,
+                quantityUnit = QuantityUnit.SERVING,
                 macros = recipe.perServing * servings,
                 loggedAt = clock.nowMillis(),
                 zoneId = zone().id,
