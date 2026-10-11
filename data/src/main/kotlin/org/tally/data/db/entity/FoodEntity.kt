@@ -11,7 +11,11 @@ import org.tally.domain.model.FoodSource
 /** Valeurs nutritionnelles pour 100 g (ou 100 ml selon `base_unit`). `barcode` unique (NULL multiples permis). */
 @Entity(
     tableName = "food",
-    indices = [Index(value = ["barcode"], unique = true), Index(value = ["archived_at", "name"])],
+    indices = [
+        Index(value = ["barcode"], unique = true),
+        Index(value = ["ciqual_code"], unique = true),
+        Index(value = ["archived_at", "name"]),
+    ],
 )
 data class FoodEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -19,6 +23,7 @@ data class FoodEntity(
     val brand: String? = null,
     val barcode: String? = null,
     val source: FoodSource,
+    @ColumnInfo(name = "ciqual_code") val ciqualCode: Int? = null,
     @ColumnInfo(name = "off_last_modified") val offLastModified: Long? = null,
     @ColumnInfo(name = "base_unit") val baseUnit: BaseUnit,
     @ColumnInfo(name = "density_g_per_ml") val densityGPerMl: Double? = null,

@@ -82,4 +82,8 @@
     <string name="add_quantity">Quantité</string>
     <string name="add_servings_unit">portion(s)</string>
     <string name="action_retry">Réessayer</string>
+    <string name="add_tab_ciqual">Ciqual</string>
+    <string name="ciqual_hint">Saisissez au moins 2 lettres pour chercher dans la table Ciqual (hors ligne).</string>
+    <string name="ciqual_empty">Aucun résultat Ciqual.</string>
+    <string name="ciqual_attribution">Source : Anses – Table de composition nutritionnelle des aliments Ciqual 2020 (07/07/2020), Licence Ouverte (Etalab). Données converties par Tally.</string>
 </resources>

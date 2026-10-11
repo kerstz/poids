@@ -22,6 +22,7 @@ fun AddEntryScreen(
     val query by viewModel.queryText.collectAsStateWithLifecycle()
     val selected by viewModel.selectedFood.collectAsStateWithLifecycle()
     val online by viewModel.online.collectAsStateWithLifecycle()
+    val ciqual by viewModel.ciqualResults.collectAsStateWithLifecycle()
     var tab by remember { mutableIntStateOf(0) }
     var recipeToLog by remember { mutableStateOf<Recipe?>(null) }
 
@@ -38,6 +39,8 @@ fun AddEntryScreen(
         onSubmitOnline = viewModel::submitOnline,
         onSelectFood = viewModel::selectFood,
         onChooseRemote = viewModel::chooseRemote,
+        ciqual = ciqual,
+        onChooseCiqual = viewModel::chooseCiqual,
         onSelectRecipe = { recipeToLog = it },
         onNewFood = onNewFood,
         onEditFood = onEditFood,

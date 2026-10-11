@@ -72,6 +72,8 @@ data class Food(
     val per100Detail: NutrientDetail = NutrientDetail.UNKNOWN,
     /** g/ml, pour convertir un aliment liquide ; non additionnable, donc hors [NutrientDetail]. */
     val densityGPerMl: Double? = null,
+    /** Code Ciqual d'origine (`source = CIQUAL`) : un code = une ligne. */
+    val ciqualCode: Int? = null,
     /** Date de dernière modification des données OFF (secondes epoch), si connue. */
     val offLastModified: Long? = null,
     /** Archivage logique : appliqué à l'écriture (`true` archive, `false` désarchive). */
@@ -93,6 +95,15 @@ fun Food.Companion.edited(
     per100: Macros,
 ): Food = (base ?: Food(id = id, name = name, per100 = per100))
     .copy(id = id, name = name, brand = brand, baseUnit = baseUnit, per100 = per100)
+
+/** Entrée de la table de référence Ciqual (Anses), valeurs pour 100 g. */
+data class CiqualFood(
+    val code: Int,
+    val name: String,
+    val groupCode: String,
+    val per100: Macros,
+    val per100Detail: NutrientDetail = NutrientDetail.UNKNOWN,
+)
 
 data class FoodPortion(
     val id: Long = 0,

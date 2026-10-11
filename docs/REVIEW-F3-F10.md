@@ -1,0 +1,51 @@
+# Revue F3-F10 — `git diff 15aaab7..8d4c3ac`
+
+Date : 2026-10-11 · Mode : lecture seule · Tests lancés : `./gradlew --offline :core:test :domain:test :data:testDebugUnitTest` → **OK (exit 0)**.
+
+## Fichiers consultés
+
+- `core/src/main/kotlin/org/tally/core/barcode/Gtin.kt`
+- `data/src/main/kotlin/org/tally/data/db/Migrations.kt`, `db/dao/FoodDao.kt`, `db/dao/RecipeDao.kt`, `db/entity/FoodEntity.kt`, `db/entity/JournalEntryEntity.kt`, `data/build/generated/ksp/debug/.../TallyDatabase_Impl.kt`
+- `data/src/main/kotlin/org/tally/data/nutrition/FoodRepositoryImpl.kt`, `RecipeRepositoryImpl.kt`, `JournalRepositoryImpl.kt`
+- `data/src/main/kotlin/org/tally/data/remote/CachedOffRemoteSource.kt`, `OffApi.kt`
+- `domain/src/main/kotlin/org/tally/domain/nutrition/Models.kt`, `RemoteUseCases.kt`, `SaveUseCases.kt`, `LogUseCases.kt`, `Repositories.kt`
+- `nutrition/src/main/kotlin/org/tally/nutrition/food/FoodEditorViewModel.kt`, `add/AddEntryViewModel.kt`, `journal/JournalViewModel.kt`, `recipe/RecipeEditorViewModel.kt`
+- Tests : `MigrationTest.kt`, `NutritionRepositoryTest.kt`, `OffRemoteTest.kt`, `RemoteUseCasesTest.kt`, `NutrientDetailTest.kt`, `GtinTest.kt`
+
+## Défauts
+
+| ID | Sévérité | Fichier:ligne | Défaut | Scénario | Correctif | Statut |
+|----|----------|---------------|--------|----------|-----------|--------|
+| R1 | Mineur | `data/.../remote/CachedOffRemoteSource.kt:102` | Les entrées de cache écrites avant ce commit se décodent sans erreur (défauts `null`) mais sans détail ; TTL FOUND = 30 j. Un aliment importé depuis ce cache garde un détail inconnu **pour toujours** : aucun rafraîchissement d'un aliment non archivé (`RemoteUseCases.kt:47`). | Scan d'un produit déjà en cache avant la mise à jour → import → sucres/sel « inconnus » définitivement. | Ajouter un champ `v: Int = 1` à `CachedProduct` et ignorer le cache si `v < 2`, ou purger `off_product_cache` à la mise à jour. | Fait vérifié (code) ; impact réel limité aux installs de dev (app non publiée, `versionCode = 1`, aucun tag) |
+| R2 | Mineur | `data/.../db/Migrations.kt:28-29` | La normalisation GTIN est dans `MIGRATION_1_2`, déjà existante depuis 261b459. Une base déjà en v2 (installs de dev) ne la rejoue pas : les codes 12 chiffres stockés ne sont plus trouvés par `findByBarcode(normalize(...))`, et un nouvel import insère « 0 »+code, ce qui crée un doublon (pas de conflit d'index : chaînes différentes). | Appareil de dev passé en v2 avant 8d4c3ac, aliment UPC-A importé → nouveau scan → doublon. | Accepter (non publié : réinstaller les appareils de dev) ou ajouter `MIGRATION_2_3` qui refait normalisation, dédup et index. | Fait vérifié (code, `version = 2`) ; existence de bases v2 en circulation = Hypothèse |
+| R3 | Mineur | `data/.../db/Migrations.kt:28-29` vs `core/.../Gtin.kt:19` | Le SQL ne vérifie pas que le code n'a que des chiffres, contrairement à `Gtin.normalize` (`all { it in '0'..'9' }`). Un code non numérique de 12 ou 14 caractères serait réécrit en SQL et jamais en Kotlin. | Code-barres v1 non numérique (saisie libre ou code interne OFF) de longueur 12. | Ajouter `AND barcode NOT GLOB '*[^0-9]*'` aux deux `UPDATE`. | Fait vérifié (code) ; présence de tels codes en v1 = Hypothèse |
+| R4 | Mineur | `core/.../Gtin.kt:19-23` | Forme canonique incohérente pour EAN-8 : `73513537` reste en 8 chiffres, mais `0000073513537` (GTIN-13) et `00000073513537` (GTIN-14 → 13) restent en 13 chiffres. Un même produit peut donc avoir deux clés. Rien n'est prévu non plus pour UPC-E (8 chiffres, checksum calculé sur la forme étendue). | Code saisi ou scanné sous forme complétée de zéros → recherche locale manquée, nouvelle requête OFF. | Si le code fait 13 chiffres avec le préfixe `00000` et que les 8 derniers forment un EAN-8 valide, le ramener à 8 chiffres (même règle dans la migration). UPC-E : expansion à prévoir au branchement du scanner (pas encore de scanner dans le dépôt). | Fait vérifié (code) ; fréquence réelle = Hypothèse |
+| R5 | Mineur | `domain/.../RemoteUseCases.kt:46,69` | Le code stocké est `remote.barcode`, c'est-à-dire le champ `code` renvoyé par OFF, et non le code demandé. Si la forme canonique d'OFF diffère de `Gtin.normalize` (cas R4), chaque scan rate la recherche locale (`ResolveBarcode`) et exige le réseau. Hors ligne, un produit déjà importé est introuvable par scan. | Code complété de zéros, OFF renvoie `code` en 8 chiffres → stockage en 8 chiffres, recherche locale en 13. | Dans `ResolveBarcode`, passer le code normalisé demandé à `ImportRemoteFood` (ou `remote.copy(barcode = code)`). | Hypothèse (comportement de normalisation d'OFF non vérifié) |
+| R6 | Mineur | `data/.../nutrition/FoodRepositoryImpl.kt:53,62` ; `domain/.../Models.kt:78` | Piège d'API : `isArchived = false` par défaut. Tout `save` d'un `Food(id≠0)` construit à la main désarchive en silence. **Aucun chemin actuel ne le fait** : seuls l'éditeur (`Food.edited` repart de la base relue au moment du save, `FoodEditorViewModel.kt:127-128`) et `ImportRemoteFood` (désarchivage voulu) appellent `SaveFood`. | Futur import de sauvegarde ou fusion qui crée `Food(id = x, …)`. | Documenter dans le KDoc de `save` (déjà partiel), ou rendre `isArchived` obligatoire (sans valeur par défaut) pour les `Food` avec id. | Fait vérifié (grep des appelants de `save`/`SaveFood`) |
+| R7 | Mineur | `domain/.../Models.kt:96` (15aaab7) | `Food.edited(base = null, id = foodId≠0)` construit un `Food` neuf (non archivé, détail inconnu) ; `FoodRepositoryImpl.save` lève alors `requireNotNull` (« aliment introuvable »), ce qui fait planter `viewModelScope`. | Éditeur ouvert sur un id qui n'existe plus. Aujourd'hui inatteignable : aucune suppression de `food`. | Dans `FoodEditorViewModel.save`, si `isEditing && base == null`, afficher l'erreur au lieu d'appeler `saveFood`. | Fait vérifié (code) ; scénario inatteignable aujourd'hui |
+| R8 | Mineur | `data/.../remote/OffApi.kt:160-163` | Le détail OFF n'est pas validé (aucun filtre `>= 0`, ni sucres ≤ glucides, ni sat ≤ lipides) ; `FoodValidation` ne contrôle que les macros. Une valeur négative ou aberrante d'OFF est stockée puis figée dans le journal. | Fiche OFF avec `salt_100g: -1` ou `sugars_100g: 900`. | `num(...)?.takeIf { it >= 0 }` pour les 4 champs (et éventuellement plafonner à 100 g/100 g). | Fait vérifié (code) ; présence de telles données OFF = Hypothèse (connue côté OFF) |
+| R9 | Mineur | `nutrition/.../journal/JournalViewModel.kt:88` | L'annulation lance `restoreEntry` sans gestion d'erreur : une exception (FK RESTRICT, disque) fait planter l'app. Le risque FK portion est corrigé (`RestoreJournalEntry`, FK vérifiée active : `PRAGMA foreign_keys = ON` dans `TallyDatabase_Impl.kt:133`). Aucune suppression de `meal_slot` ni de `food` n'existe aujourd'hui. | Futur écran de suppression de repas ou d'aliment. | `runCatching` + snackbar d'erreur. | Fait vérifié (code) ; scénario de crash = Hypothèse future |
+| T1 | Mineur | `data/src/test/.../MigrationTest.kt:59,61,87` | Restes de l'ancien backfill : `base_unit = 'ML'` pour l'id 5 et l'entrée 2 « aliment modifié depuis » ne testent plus rien, puisque le détail est toujours NULL. Le commentaire de la ligne 87 suggère un filtre qui n'existe plus. | — | Supprimer ces lignes ou les remplacer par un cas GTIN-14 (`03017620422003` → `3017620422003`) et par un doublon 12/13 chiffres dont la ligne 13 chiffres est archivée. | Fait vérifié |
+| T2 | Mineur | `data/src/test/.../MigrationTest.kt:57-58` | Le chemin SQL GTIN-14 (`substr`) n'est couvert par aucun test, ni la collision 14 → 13 avec un code existant. | — | Ajouter `food(8, "GTIN-14", "00123456789012")`, puis vérifier la dédup avec les ids 6 et 7. | Fait vérifié |
+| T3 | Mineur | `domain/src/test/.../RemoteUseCasesTest.kt:17` | Le faux dépôt compare les chaînes brutes, sans normalisation. Aucun test de domaine ne vérifie qu'un `ImportRemoteFood` au code UPC-A (12) retrouve l'aliment stocké en 13 chiffres. Le test d'import archivé ne vérifie pas non plus la conservation des portions ni le repli `kept.ifEmpty { servingPortion }`. | — | Faire normaliser le faux dépôt (`Gtin.normalize`), et ajouter les assertions sur les portions et sur l'id retourné. | Fait vérifié |
+
+## Points vérifiés sans défaut
+
+| Point | Constat | Statut |
+|-------|---------|--------|
+| Archivage perdu via l'éditeur (15aaab7) | `Food.edited` part de `repository.get(foodId).food`, relu au moment du save : `isArchived` et `offLastModified` sont conservés | Fait vérifié + test `saveAppliesArchivedFlagBothWays` |
+| Import OFF d'un aliment **non** archivé | Retour immédiat de `existing`, sans écriture : pas de désarchivage parasite | Fait vérifié |
+| Import OFF d'un aliment archivé | Un seul `save` ; id, unité, densité et code conservés ; `SaveFood` accepte (même id) | Fait vérifié |
+| `Gtin.normalize` idempotente | 12→13, 14(0)→13, 13 inchangé : appliquer deux fois donne le même résultat (toEntity + catch) | Fait vérifié |
+| Clé du cache OFF | Toujours le code normalisé (`ResolveBarcode` est le seul appelant de `remote.findByBarcode`). Les anciennes clés 12 chiffres restent orphelines jusqu'à leur expiration, sans effet | Fait vérifié |
+| Checksum après normalisation | Ajouter ou retirer un zéro de tête ne change pas le checksum GTIN | Fait vérifié |
+| Ordre SQL de migration | Normalisation, puis dédup, puis `CREATE UNIQUE INDEX` : pas de `SQLiteConstraintException` | Fait vérifié + `MigrationTest` |
+| Détail recette, `servings <= 0` | `UNKNOWN` (et `RecipeValidation` impose `servings > 0` et des ingrédients non vides) | Fait vérifié |
+| Somme stricte, effets de bord | `NutrientDetail.plus` n'est utilisé que pour le cumul des recettes, qui part de `ZERO` ; aucun total du journal ne somme le détail | Fait vérifié (grep) |
+| Désérialisation d'un ancien cache | Nouveaux champs avec défaut, `ignoreUnknownKeys`, `runCatching` : pas de crash (perte de détail, voir R1) | Fait vérifié |
+| FK portion à l'annulation | `RestoreJournalEntry` met `portionId` à null si la portion a disparu ; FK active en test (Room) | Fait vérifié + test |
+
+## Verdict
+
+**GO** : aucun défaut bloquant ni majeur. Pas de crash ni de désarchivage parasite sur les chemins actuels.
+Avant release, corriger R1/R2 (réinstaller les appareils de dev ou purger le cache) et R8 ; R4/R5 au moment de brancher le scanner.

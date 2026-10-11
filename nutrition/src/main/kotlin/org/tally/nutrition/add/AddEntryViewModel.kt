@@ -12,8 +12,12 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import org.tally.core.barcode.Gtin
 import org.tally.domain.nutrition.BarcodeLookup
+import org.tally.domain.nutrition.CiqualFood
+import org.tally.domain.nutrition.CiqualRepository
+import org.tally.domain.nutrition.ImportCiqualFood
 import org.tally.domain.nutrition.FoodRemoteSource
 import org.tally.domain.nutrition.ImportRemoteFood
 import org.tally.domain.nutrition.RemoteFood
@@ -63,6 +67,8 @@ class AddEntryViewModel @Inject constructor(
     private val remote: FoodRemoteSource,
     private val resolveBarcode: ResolveBarcode,
     private val importRemoteFood: ImportRemoteFood,
+    private val ciqual: CiqualRepository,
+    private val importCiqualFood: ImportCiqualFood,
     private val settings: SettingsRepository,
 ) : ViewModel() {
 
@@ -81,6 +87,11 @@ class AddEntryViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AddEntryUiState())
 
     val queryText: StateFlow<String> = query
+
+    /** Table Ciqual embarquée : recherche locale, au fil de la frappe (aucun réseau). */
+    val ciqualResults: StateFlow<List<CiqualFood>> = query
+        .flatMapLatest { q -> flow { emit(if (q.trim().length >= MIN_CIQUAL_LENGTH) ciqual.search(q) else emptyList()) } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     private val _selectedFood = MutableStateFlow<FoodWithPortions?>(null)
     val selectedFood: StateFlow<FoodWithPortions?> = _selectedFood
@@ -151,6 +162,19 @@ class AddEntryViewModel @Inject constructor(
 
     private var importing = false
 
+    /** Copie l'entrée Ciqual dans `food` puis ouvre le choix de quantité. */
+    fun chooseCiqual(item: CiqualFood) {
+        if (importing) return
+        importing = true
+        viewModelScope.launch {
+            try {
+                importCiqualFood(item)?.let { selectFood(it) }
+            } finally {
+                importing = false
+            }
+        }
+    }
+
     private fun secondsFor(ms: Long): Int = ((ms + 999) / 1_000).toInt().coerceAtLeast(1)
 
     fun setQuery(value: String) {
@@ -175,6 +199,7 @@ class AddEntryViewModel @Inject constructor(
     private companion object {
         const val SUBMIT_DEBOUNCE_MS = 400L
         const val MIN_ONLINE_LENGTH = 3
+        const val MIN_CIQUAL_LENGTH = 2
     }
 
     fun addRecipe(recipe: Recipe, servings: Double, onDone: () -> Unit) {

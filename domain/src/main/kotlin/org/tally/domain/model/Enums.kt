@@ -8,7 +8,7 @@ enum class GoalType { ENERGY_KCAL, PROTEIN_G, CARBS_G, FAT_G, BODY_WEIGHT_KG }
 
 enum class GoalMode { FIXED, COMPUTED }
 
-enum class FoodSource { USER, OFF, IMPORT }
+enum class FoodSource { USER, OFF, IMPORT, CIQUAL }
 
 /** Base de quantité d'un aliment : valeurs nutritionnelles pour 100 g ou 100 ml. */
 enum class BaseUnit { G, ML }

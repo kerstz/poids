@@ -28,6 +28,9 @@ interface FoodDao {
     @Query("SELECT * FROM food WHERE barcode = :barcode LIMIT 1")
     suspend fun findByBarcodeAny(barcode: String): FoodEntity?
 
+    @Query("SELECT * FROM food WHERE ciqual_code = :code LIMIT 1")
+    suspend fun findByCiqualCode(code: Int): FoodEntity?
+
     @Query("SELECT * FROM food_portion WHERE food_id = :foodId ORDER BY id")
     suspend fun portionsFor(foodId: Long): List<FoodPortionEntity>
 

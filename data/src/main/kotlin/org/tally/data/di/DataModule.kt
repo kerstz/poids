@@ -14,6 +14,7 @@ import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 import org.tally.data.remote.CachedOffRemoteSource
 import org.tally.data.remote.OffApi
+import org.tally.data.db.dao.CiqualDao
 import org.tally.data.db.dao.OffCacheDao
 import org.tally.domain.nutrition.FoodRemoteSource
 import org.tally.domain.nutrition.ImportRemoteFood
@@ -29,15 +30,18 @@ import org.tally.data.db.dao.JournalDao
 import org.tally.data.db.dao.MealSlotDao
 import org.tally.data.db.dao.MeasurementDao
 import org.tally.data.db.dao.RecipeDao
+import org.tally.data.nutrition.CiqualRepositoryImpl
 import org.tally.data.nutrition.FoodRepositoryImpl
 import org.tally.data.nutrition.GoalRepositoryImpl
 import org.tally.data.nutrition.JournalRepositoryImpl
 import org.tally.data.nutrition.MealSlotRepositoryImpl
 import org.tally.data.nutrition.RecipeRepositoryImpl
+import org.tally.domain.nutrition.CiqualRepository
 import org.tally.domain.nutrition.FoodRepository
 import org.tally.domain.nutrition.GoalRepository
 import org.tally.domain.nutrition.JournalRepository
 import org.tally.domain.nutrition.LogFood
+import org.tally.domain.nutrition.ImportCiqualFood
 import org.tally.domain.nutrition.LogRecipe
 import org.tally.domain.nutrition.RestoreJournalEntry
 import org.tally.domain.nutrition.MealSlotRepository
@@ -73,6 +77,9 @@ abstract class DataBindingsModule {
 
     @Binds
     abstract fun bindFoodRepository(impl: FoodRepositoryImpl): FoodRepository
+
+    @Binds
+    abstract fun bindCiqualRepository(impl: CiqualRepositoryImpl): CiqualRepository
 
     @Binds
     abstract fun bindRecipeRepository(impl: RecipeRepositoryImpl): RecipeRepository
@@ -128,6 +135,13 @@ object DataProvidersModule {
     @Provides
     fun provideRestoreJournalEntry(journal: JournalRepository, foods: FoodRepository): RestoreJournalEntry =
         RestoreJournalEntry(journal, foods)
+
+    @Provides
+    fun provideCiqualDao(db: TallyDatabase): CiqualDao = db.ciqualDao()
+
+    @Provides
+    fun provideImportCiqualFood(foods: FoodRepository, saveFood: SaveFood): ImportCiqualFood =
+        ImportCiqualFood(foods, saveFood)
 
     @Provides
     fun provideOffCacheDao(db: TallyDatabase): OffCacheDao = db.offCacheDao()

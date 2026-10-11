@@ -10,10 +10,18 @@ interface FoodRepository {
     suspend fun findByBarcode(barcode: String): Food?
     /** Comme [findByBarcode] mais archivés inclus (`Food.isArchived`) : l'index code-barres est unique. */
     suspend fun findByBarcodeAny(barcode: String): Food?
+    /** Aliment issu de cette entrée Ciqual, archivé inclus. */
+    suspend fun findByCiqualCode(code: Int): Food?
     /** Insère ou met à jour ; applique `Food.isArchived` (désarchive si `false`). */
     suspend fun save(food: Food, portions: List<FoodPortion>): Long
     /** Archivage : l'aliment disparaît des recherches mais l'historique reste intact. */
     suspend fun archive(id: Long)
+}
+
+/** Table de référence Ciqual embarquée (lecture seule, hors sauvegarde). */
+interface CiqualRepository {
+    /** Entrées dont le nom contient [query] (sans casse ni accents), au plus 50. */
+    suspend fun search(query: String): List<CiqualFood>
 }
 
 interface RecipeRepository {

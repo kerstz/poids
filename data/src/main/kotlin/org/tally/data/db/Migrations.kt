@@ -37,4 +37,18 @@ object Migrations {
             db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_food_barcode` ON `food` (`barcode`)")
         }
     }
+
+    /** v2 → v3 : table de référence Ciqual + `food.ciqual_code` (unique, NULL multiples permis). */
+    val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `ciqual_food` (`code` INTEGER NOT NULL, `name` TEXT NOT NULL, " +
+                    "`name_norm` TEXT NOT NULL, `group_code` TEXT NOT NULL, `energy_kcal` REAL NOT NULL, " +
+                    "`protein_g` REAL NOT NULL, `carbs_g` REAL NOT NULL, `fat_g` REAL NOT NULL, `sugars_g` REAL, " +
+                    "`sat_fat_g` REAL, `fiber_g` REAL, `salt_g` REAL, PRIMARY KEY(`code`))",
+            )
+            db.execSQL("ALTER TABLE `food` ADD COLUMN `ciqual_code` INTEGER")
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_food_ciqual_code` ON `food` (`ciqual_code`)")
+        }
+    }
 }

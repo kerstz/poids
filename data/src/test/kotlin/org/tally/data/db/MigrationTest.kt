@@ -108,4 +108,32 @@ class MigrationTest {
         db.food(10, "NULL ok", null)
         db.close()
     }
+
+    @Test
+    fun migrate2To3AddsCiqualWithoutTouchingFood() {
+        helper.createDatabase("mig23", 2).apply {
+            food(1, "Pâtes", "3017620422003")
+            close()
+        }
+        val db = helper.runMigrationsAndValidate("mig23", 3, true, Migrations.MIGRATION_2_3)
+        db.query("SELECT name, barcode, ciqual_code FROM food WHERE id = 1").use {
+            it.moveToFirst()
+            assertEquals("Pâtes", it.getString(0))
+            assertEquals("3017620422003", it.getString(1))
+            assertEquals(true, it.isNull(2))
+        }
+        db.execSQL("INSERT INTO food (name, source, base_unit, energy_kcal, protein_g, carbs_g, fat_g, ciqual_code, created_at, updated_at) VALUES ('A','CIQUAL','G',1,0,0,0,5,1,1)")
+        try {
+            db.execSQL("INSERT INTO food (name, source, base_unit, energy_kcal, protein_g, carbs_g, fat_g, ciqual_code, created_at, updated_at) VALUES ('B','CIQUAL','G',1,0,0,0,5,1,1)")
+            fail("index unique ciqual_code attendu")
+        } catch (_: SQLiteConstraintException) {
+        }
+        db.close()
+    }
+
+    @Test
+    fun migrateAll1To3() {
+        helper.createDatabase("mig13", 1).close()
+        helper.runMigrationsAndValidate("mig13", 3, true, *TallyDatabase.ALL_MIGRATIONS).close()
+    }
 }
