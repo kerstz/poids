@@ -380,11 +380,11 @@ org.<app>.nutrition
 | off_last_modified | INTEGER | nullable |
 | base_unit | TEXT | `G/ML` |
 | density_g_per_ml | REAL | nullable |
-| energy_kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g, salt_g | REAL | **pour 100 g/ml** ; energy/protein/carbs/fat NOT NULL, autres nullable ; `CHECK(>=0)` |
+| energy_kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g, salt_g | REAL | **pour 100 g/ml** ; energy/protein/carbs/fat NOT NULL, autres nullable ; `CHECK(>=0)` **[non implémenté : validé par `FoodValidation`]** |
 | archived_at | INTEGER | nullable |
 | created_at, updated_at | INTEGER | — |
 - Index : `barcode` **unique** (v2 ; NULL multiples permis, archivés inclus — un code = une ligne, le ré-import d'un archivé désarchive et rafraîchit la même ligne), `(archived_at, name)`.
-- FTS : `food_fts` (`@Fts4`, contentEntity=food, `name, brand`, tokenizer `unicode61 remove_diacritics`) pour recherche hors ligne.
+- FTS : `food_fts` (`@Fts4`, contentEntity=food, `name, brand`, tokenizer `unicode61 remove_diacritics`) pour recherche hors ligne. **[non implémenté : recherche en `LIKE`, voir M4]**
 - [D] Pas de colonnes micronutriments en v1.
 
 **`food_portion`**
@@ -666,7 +666,7 @@ app_setting (k/v)
 | C1 | **CIQUAL 2020** retenu : jeu de données Anses sur data.gouv.fr, licence `fr-lo` (Licence Ouverte), métadonnées modifiées le 2025-11-20 | `data.gouv.fr/api/1/datasets/table-de-composition-nutritionnelle-des-aliments-ciqual/` | F (métadonnée API) |
 | C2 | Fichier xls FR téléchargé depuis le site Anses (HTTP 200, 3 639 808 o, sha256 `a728c29d…5da75d`), **non embarqué**, **non versionné** | `ciqual.anses.fr/cms/sites/default/files/inline-files/Table Ciqual 2020_FR_2020 07 07.xls` | F |
 | C3 | La page d'accueil `ciqual.anses.fr` est une SPA Angular : la mention de licence n'y a pas été lue en clair | curl | H |
-| C4 | Version de la Licence Ouverte non précisée par l'API (`fr-lo` ≠ numéro) : 1.0 ou 2.0 à confirmer | — | H |
+| C4 | L'API data.gouv distingue `fr-lo` (« Licence Ouverte / Open Licence », PDF Etalab 2014 = **LO 1.0**) de `lov2` (« version 2.0 ») : CIQUAL 2020 = **LO 1.0** (déduction forte, API `datasets/licenses/`, audit Opus 2026-10-11) | `data.gouv.fr/api/1/datasets/licenses/` | F (déduction) |
 | C5 | **CIQUAL 2025** : un seul jeu (2020) existe sur data.gouv ; **passage à 2025 conditionné à la vérification de sa licence sur le site Anses** (page de téléchargement ou mentions légales du fichier) | recherche data.gouv `q=ciqual` | À faire |
 | C6 | Obligation LO : mentionner la source (Anses, Table Ciqual 2020) et la date de dernière mise à jour des données → voir `NOTICE.md` | Licence Ouverte | F |
 

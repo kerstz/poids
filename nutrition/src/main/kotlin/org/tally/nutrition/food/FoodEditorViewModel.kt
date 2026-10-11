@@ -15,6 +15,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.tally.domain.model.BaseUnit
 import org.tally.domain.nutrition.Food
+import org.tally.domain.nutrition.edited
 import org.tally.domain.nutrition.FoodPortion
 import org.tally.domain.nutrition.FoodRepository
 import org.tally.domain.nutrition.Macros
@@ -107,17 +108,11 @@ class FoodEditorViewModel @Inject constructor(
     }
 
     fun save(onDone: () -> Unit) {
-        val food = Food(
-            id = foodId,
-            name = name,
-            brand = brand.ifBlank { null },
-            baseUnit = baseUnit,
-            per100 = Macros(
-                energyKcal = parseDecimal(energy) ?: -1.0,
-                proteinG = parseDecimal(protein) ?: 0.0,
-                carbsG = parseDecimal(carbs) ?: 0.0,
-                fatG = parseDecimal(fat) ?: 0.0,
-            ),
+        val per100 = Macros(
+            energyKcal = parseDecimal(energy) ?: -1.0,
+            proteinG = parseDecimal(protein) ?: 0.0,
+            carbsG = parseDecimal(carbs) ?: 0.0,
+            fatG = parseDecimal(fat) ?: 0.0,
         )
         val validPortions = portions.mapNotNull { draft ->
             val q = parseDecimal(draft.quantity)
@@ -128,6 +123,9 @@ class FoodEditorViewModel @Inject constructor(
             }
         }.mapIndexed { index, p -> p.copy(isDefault = index == 0) }
         viewModelScope.launch {
+            // Repartir de l'aliment stocké : code-barres, source, détail et densité ne sont pas éditables ici.
+            val base = if (isEditing) repository.get(foodId)?.food else null
+            val food = Food.edited(base, foodId, name, brand.ifBlank { null }, baseUnit, per100)
             if (saveFood(food, validPortions) == null) showError = true else onDone()
         }
     }

@@ -94,6 +94,13 @@ class NutritionRepositoryTest {
     }
 
     @Test
+    fun insertingAnExistingBarcodeReusesTheRowInsteadOfCrashing() = runTest {
+        val first = foods.save(Food(name = "A", barcode = "3017620422003", per100 = Macros(1.0)), emptyList())
+        val second = foods.save(Food(name = "A bis", barcode = "3017620422003", per100 = Macros(1.0)), emptyList())
+        assertEquals(first, second)
+    }
+
+    @Test
     fun portionsRoundTripAndUpdateReplacesThem() = runTest {
         val food = saveOats()
         assertEquals(1, foods.get(food.id)!!.portions.size)
