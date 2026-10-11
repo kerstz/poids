@@ -31,6 +31,8 @@ class FoodRepositoryImpl @Inject constructor(
         return FoodWithPortions(entity.toDomain(), portions)
     }
 
+    override suspend fun findByBarcode(barcode: String): Food? = dao.findByBarcode(barcode)?.toDomain()
+
     override suspend fun save(food: Food, portions: List<FoodPortion>): Long {
         val now = clock.nowMillis()
         val portionEntities = portions.map {

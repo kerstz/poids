@@ -10,4 +10,9 @@
     <string name="settings_unit_length">Length</string>
     <string name="settings_unit_distance">Distance</string>
     <string name="settings_unit_energy">Energy</string>
+    <string name="settings_online">Online data</string>
+    <string name="settings_off_enabled">Look up products on Open Food Facts</string>
+    <string name="settings_off_hint">Only the barcode or search words are sent. Nothing else leaves the device.</string>
+    <string name="settings_sources">Data sources</string>
+    <string name="settings_off_attribution">Food data: Open Food Facts contributors, Open Database License (ODbL) 1.0. https://world.openfoodfacts.org</string>
 </resources>

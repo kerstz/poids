@@ -1,6 +1,7 @@
 plugins {
     id("tally.android.library")
     id("tally.android.hilt")
+    id("tally.kotlin.serialization")
 }
 
 android {
@@ -20,6 +21,8 @@ dependencies {
     implementation(project(":domain"))
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.room.runtime)
+    implementation(libs.okhttp)
+    implementation(libs.kotlinx.serialization.json)
     ksp(libs.room.compiler)
 
     testImplementation(libs.robolectric)

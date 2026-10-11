@@ -31,6 +31,12 @@ class SettingsRepositoryImpl @Inject constructor(
         )
     }
 
+    override val offEnabled: Flow<Boolean> = dao.observeAll().map { rows ->
+        rows.firstOrNull { it.key == KEY_OFF_ENABLED }?.value?.toBooleanStrictOrNull() ?: true
+    }
+
+    override suspend fun setOffEnabled(enabled: Boolean) = put(KEY_OFF_ENABLED, enabled.toString())
+
     override suspend fun setMassUnit(unit: MassUnit) = put(KEY_MASS, unit.name)
     override suspend fun setLengthUnit(unit: LengthUnit) = put(KEY_LENGTH, unit.name)
     override suspend fun setDistanceUnit(unit: DistanceUnit) = put(KEY_DISTANCE, unit.name)
@@ -40,6 +46,7 @@ class SettingsRepositoryImpl @Inject constructor(
         dao.put(AppSettingEntity(key, value, clock.nowMillis()))
 
     private companion object {
+        const val KEY_OFF_ENABLED = "off.enabled"
         const val KEY_MASS = "unit.mass"
         const val KEY_LENGTH = "unit.length"
         const val KEY_DISTANCE = "unit.distance"

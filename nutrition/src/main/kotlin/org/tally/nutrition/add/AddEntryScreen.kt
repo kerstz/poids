@@ -9,7 +9,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import org.tally.domain.nutrition.RemoteFood
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.AlertDialog
@@ -57,6 +60,7 @@ fun AddEntryScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val query by viewModel.queryText.collectAsStateWithLifecycle()
     val selected by viewModel.selectedFood.collectAsStateWithLifecycle()
+    val online by viewModel.online.collectAsStateWithLifecycle()
     var tab by remember { mutableIntStateOf(0) }
     var recipeToLog by remember { mutableStateOf<Recipe?>(null) }
 
@@ -66,22 +70,32 @@ fun AddEntryScreen(
             onValueChange = viewModel::setQuery,
             label = { Text(stringResource(R.string.add_search)) },
             singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = if (tab == 2) ImeAction.Search else ImeAction.Default),
+            keyboardActions = KeyboardActions(onSearch = { viewModel.submitOnline() }),
             modifier = Modifier.fillMaxWidth(),
         )
         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-            listOf(R.string.add_tab_foods, R.string.add_tab_recipes).forEachIndexed { index, label ->
-                SegmentedButton(
-                    selected = tab == index,
-                    onClick = { tab = index },
-                    shape = SegmentedButtonDefaults.itemShape(index, 2),
-                ) { Text(stringResource(label)) }
-            }
+            listOf(R.string.add_tab_foods, R.string.add_tab_recipes, R.string.add_tab_online)
+                .forEachIndexed { index, label ->
+                    SegmentedButton(
+                        selected = tab == index,
+                        onClick = { tab = index },
+                        shape = SegmentedButtonDefaults.itemShape(index, 3),
+                    ) { Text(stringResource(label)) }
+                }
         }
-        TextButton(onClick = if (tab == 0) onNewFood else onNewRecipe) {
-            Text(stringResource(if (tab == 0) R.string.add_new_food else R.string.add_new_recipe))
+        when (tab) {
+            0 -> TextButton(onClick = onNewFood) { Text(stringResource(R.string.add_new_food)) }
+            1 -> TextButton(onClick = onNewRecipe) { Text(stringResource(R.string.add_new_recipe)) }
+            else -> TextButton(
+                onClick = viewModel::submitOnline,
+                enabled = online != OnlineState.Loading && query.trim().length >= 3,
+            ) { Text(stringResource(R.string.add_search_online)) }
         }
         LazyColumn(Modifier.fillMaxSize()) {
-            if (tab == 0) {
+            if (tab == 2) {
+                onlineItems(online, onChoose = viewModel::chooseRemote)
+            } else if (tab == 0) {
                 items(state.foods, key = { "f-${it.id}" }) { food ->
                     ListItem(
                         headlineContent = { Text(food.name) },
@@ -239,4 +253,52 @@ private fun RecipeServingsDialog(recipe: Recipe, onDismiss: () -> Unit, onConfir
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
+}
+
+private fun androidx.compose.foundation.lazy.LazyListScope.onlineItems(
+    state: OnlineState,
+    onChoose: (RemoteFood) -> Unit,
+) {
+    item(key = "online-status") {
+        val message = when (state) {
+            OnlineState.Idle -> R.string.online_hint
+            OnlineState.Loading -> R.string.online_loading
+            OnlineState.Empty -> R.string.online_empty
+            OnlineState.Unavailable -> R.string.online_unavailable
+            OnlineState.Disabled -> R.string.online_disabled
+            is OnlineState.RateLimited, is OnlineState.Results -> null
+        }
+        if (message != null) {
+            Text(stringResource(message), modifier = Modifier.padding(vertical = 8.dp))
+        }
+        if (state is OnlineState.RateLimited) {
+            Text(
+                stringResource(R.string.online_rate_limited, state.seconds),
+                modifier = Modifier.padding(vertical = 8.dp),
+            )
+        }
+    }
+    if (state is OnlineState.Results) {
+        items(state.items, key = { "o-${it.barcode}" }) { item ->
+            ListItem(
+                headlineContent = { Text(item.name) },
+                supportingContent = {
+                    Text(
+                        listOfNotNull(
+                            item.brand,
+                            stringResource(R.string.per_100_g, formatKcal(item.per100)),
+                        ).joinToString(" · "),
+                    )
+                },
+                modifier = Modifier.clickable { onChoose(item) },
+            )
+        }
+        item(key = "online-attribution") {
+            Text(
+                stringResource(R.string.online_attribution),
+                style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(vertical = 12.dp),
+            )
+        }
+    }
 }

@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
 import androidx.lifecycle.viewmodel.compose.saveable
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,6 +44,7 @@ class PortionDraft(label: String = "", quantity: String = "", private val onChan
  * Brouillon conservé dans [SavedStateHandle] : survit à la rotation et à la mort du processus.
  * Les valeurs chargées depuis la base ne sont lues qu'une fois (clé `loaded`).
  */
+@OptIn(SavedStateHandleSaveableApi::class)
 @HiltViewModel
 class FoodEditorViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,

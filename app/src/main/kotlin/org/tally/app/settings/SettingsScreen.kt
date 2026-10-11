@@ -9,6 +9,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Switch
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.Alignment
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +29,7 @@ import org.tally.core.unit.MassUnit
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
     val prefs by viewModel.unitPreferences.collectAsStateWithLifecycle()
+    val offEnabled by viewModel.offEnabled.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
@@ -37,6 +41,34 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         UnitChoice(R.string.settings_unit_length, LengthUnit.entries, prefs.length, viewModel::setLength)
         UnitChoice(R.string.settings_unit_distance, DistanceUnit.entries, prefs.distance, viewModel::setDistance)
         UnitChoice(R.string.settings_unit_energy, EnergyUnit.entries, prefs.energy, viewModel::setEnergy)
+
+        Text(
+            stringResource(R.string.settings_online),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(top = 24.dp),
+        )
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+            Text(
+                stringResource(R.string.settings_off_enabled),
+                modifier = Modifier.weight(1f),
+            )
+            Switch(checked = offEnabled, onCheckedChange = viewModel::setOffEnabled)
+        }
+        Text(
+            stringResource(R.string.settings_off_hint),
+            style = MaterialTheme.typography.bodySmall,
+        )
+
+        Text(
+            stringResource(R.string.settings_sources),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(top = 24.dp),
+        )
+        Text(
+            stringResource(R.string.settings_off_attribution),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 8.dp),
+        )
     }
 }
 

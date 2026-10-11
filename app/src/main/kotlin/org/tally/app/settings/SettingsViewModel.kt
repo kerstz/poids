@@ -23,6 +23,11 @@ class SettingsViewModel @Inject constructor(
     val unitPreferences: StateFlow<UnitPreferences> = repository.unitPreferences
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UnitPreferences())
 
+    val offEnabled: StateFlow<Boolean> = repository.offEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+
+    fun setOffEnabled(enabled: Boolean) = viewModelScope.launch { repository.setOffEnabled(enabled) }
+
     fun setMass(unit: MassUnit) = viewModelScope.launch { repository.setMassUnit(unit) }
     fun setLength(unit: LengthUnit) = viewModelScope.launch { repository.setLengthUnit(unit) }
     fun setDistance(unit: DistanceUnit) = viewModelScope.launch { repository.setDistanceUnit(unit) }

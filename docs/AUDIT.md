@@ -642,3 +642,17 @@ app_setting (k/v)
 ---
 
 **STOP.** Audit terminé. 0 code, 0 modification de projet existant. En attente de validation explicite.
+
+---
+
+## 7. Mises à jour (après jalon 5)
+
+| # | Sujet | Constat vérifié (2026-10-11) | Source | Impact |
+|---|---|---|---|---|
+| M1 | Limites OFF | 15 req/min/IP (produit), 10 req/min/IP (recherche) ; « ne pas utiliser pour la recherche au fil de la frappe » ; HTTP 503 si limites globales dépassées | openfoodfacts.github.io/openfoodfacts-server/api/ (Rate limits) | Corrige §3.4 (≈100 req/min produit, supposé). Recherche = soumission explicite + debounce 400 ms ; limiteur local 12/min (produit) et 8/min (recherche) |
+| M2 | ETag / Last-Modified | Absents des en-têtes de `api/v2/product` | requête réelle avec User-Agent | Pas de requête conditionnelle : TTL seul (30 j trouvé, 7 j absent) |
+| M3 | Forme des réponses | Produit inconnu = HTTP 200 + `status: 0` ; Search-a-licious : `hits[]`, `brands` en liste, nutriments partiels | requêtes réelles | Parsing tolérant ; produit sans nom ou sans énergie ignoré |
+| M4 | FTS4 vs LIKE | `LIKE '%q%'` : 4 ms à 5 000 lignes, 20 ms à 50 000 (Robolectric, Room en mémoire) ; la table `food` ne contient que les aliments saisis ou copiés par l'utilisateur ; le cache OFF est lu par clé primaire | `FoodSearchBenchmarkTest` | **LIKE conservé** ; FTS4 à reconsidérer au-delà de ~100 000 aliments |
+| M5 | Purge du cache | Purge des entrées expirées à chaque écriture du cache (pas de WorkManager) | `CachedOffRemoteSource` | Évite `RECEIVE_BOOT_COMPLETED` et une dépendance ; écart assumé avec §3.4 |
+| M6 | `quantity_base` | `journal_entry.quantity_unit` (G / ML / SERVING) ajouté ; schéma v1 réécrit (non publié) | commit « Fix : unité explicite… » | R13 / ambiguïté levée |
+| M7 | Écritures | `SaveWeight`, `SaveFood`, `SaveRecipe` : chemin unique validé ; les repositories ne valident pas. Import/restauration (jalon 7) devront les utiliser | `domain/` | Point à respecter au jalon 7 |

@@ -8,7 +8,16 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Qualifier
 import javax.inject.Singleton
+import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
+import org.tally.data.remote.CachedOffRemoteSource
+import org.tally.data.remote.OffApi
+import org.tally.data.db.dao.OffCacheDao
+import org.tally.domain.nutrition.FoodRemoteSource
+import org.tally.domain.nutrition.ImportRemoteFood
+import org.tally.domain.nutrition.ResolveBarcode
 import org.tally.core.time.AppClock
 import org.tally.core.time.SystemAppClock
 import org.tally.data.db.TallyDatabase
@@ -39,6 +48,18 @@ import org.tally.domain.nutrition.SaveFood
 import org.tally.domain.nutrition.SaveRecipe
 import org.tally.domain.body.WeightRepository
 import org.tally.domain.settings.SettingsRepository
+
+/** User-Agent OFF (nom + version + contact) fourni par `:app`. Voir docs/AUDIT.md §3.4. */
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+annotation class OffUserAgent
+
+@Module
+@InstallIn(SingletonComponent::class)
+internal abstract class RemoteBindingsModule {
+    @Binds
+    abstract fun bindFoodRemoteSource(impl: CachedOffRemoteSource): FoodRemoteSource
+}
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -101,6 +122,28 @@ object DataProvidersModule {
 
     @Provides
     fun provideLogRecipe(journal: JournalRepository, clock: AppClock): LogRecipe = LogRecipe(journal, clock)
+
+    @Provides
+    fun provideOffCacheDao(db: TallyDatabase): OffCacheDao = db.offCacheDao()
+
+    @Provides
+    @Singleton
+    internal fun provideOffApi(@OffUserAgent userAgent: String): OffApi = OffApi(
+        client = OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .callTimeout(20, TimeUnit.SECONDS)
+            .build(),
+        userAgent = userAgent,
+    )
+
+    @Provides
+    fun provideResolveBarcode(foods: FoodRepository, remote: FoodRemoteSource): ResolveBarcode =
+        ResolveBarcode(foods, remote)
+
+    @Provides
+    fun provideImportRemoteFood(foods: FoodRepository, saveFood: SaveFood): ImportRemoteFood =
+        ImportRemoteFood(foods, saveFood)
 
     @Provides
     fun provideSaveWeight(repository: WeightRepository): SaveWeight = SaveWeight(repository)

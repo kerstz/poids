@@ -10,4 +10,9 @@
     <string name="settings_unit_length">Taille</string>
     <string name="settings_unit_distance">Distance</string>
     <string name="settings_unit_energy">Énergie</string>
+    <string name="settings_online">Données en ligne</string>
+    <string name="settings_off_enabled">Chercher les produits sur Open Food Facts</string>
+    <string name="settings_off_hint">Seuls le code-barres ou les mots recherchés sont envoyés. Rien d\'autre ne quitte l\'appareil.</string>
+    <string name="settings_sources">Sources de données</string>
+    <string name="settings_off_attribution">Données alimentaires : contributeurs d\'Open Food Facts, Open Database License (ODbL) 1.0. https://world.openfoodfacts.org</string>
 </resources>
