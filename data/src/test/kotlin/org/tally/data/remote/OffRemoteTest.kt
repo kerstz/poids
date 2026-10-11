@@ -99,6 +99,14 @@ class OffRemoteTest {
     fun tearDown() = db.close()
 
     @Test
+    fun userAgentCarriesAppNameVersionAndContactUrl() {
+        val ua = offUserAgent("Tally", "0.1.0", "https://github.com/kerstz/poids")
+        assertEquals("Tally/0.1.0 (Android; +https://github.com/kerstz/poids)", ua)
+        assertTrue(ua.contains("Tally") && ua.contains("https://"))
+        org.junit.Assert.assertThrows(IllegalArgumentException::class.java) { offUserAgent("Tally", "0.1.0", "mailto:x@y.z") }
+    }
+
+    @Test
     fun productIsParsedAndSentWithUserAgent() = runTest {
         val result = source.findByBarcode("3017620422003") as RemoteResult.Success<RemoteFood>
         assertEquals("Nutella", result.value.name)
