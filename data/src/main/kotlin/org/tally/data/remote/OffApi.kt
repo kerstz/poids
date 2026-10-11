@@ -24,6 +24,15 @@ import org.tally.domain.nutrition.RemoteFood
 import org.tally.domain.nutrition.RemoteResult
 
 /**
+ * User-Agent exigé par OFF : nom de l'app + version + URL de contact (le dépôt, jamais un e-mail perso).
+ * Forme : `Tally/0.1.0 (Android; +https://github.com/kerstz/poids)`.
+ */
+fun offUserAgent(appName: String, version: String, contactUrl: String): String {
+    require(appName.isNotBlank() && contactUrl.startsWith("https://")) { "User-Agent OFF : nom et URL https requis" }
+    return "$appName/$version (Android; +$contactUrl)"
+}
+
+/**
  * Client Open Food Facts. User-Agent obligatoire (docs OFF), HTTPS uniquement, aucune authentification.
  * Ne gère ni cache ni limitation : voir [CachedOffRemoteSource].
  */
