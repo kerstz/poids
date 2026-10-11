@@ -1,6 +1,5 @@
 # Écrans pas encore migrés vers les tokens :core-ui (docs/UI.md). Retirer la ligne à la migration de l'écran.
 app/src/main/kotlin/org/tally/app/navigation/TopLevelDestination.kt
 app/src/main/kotlin/org/tally/app/settings/SettingsScreen.kt
-nutrition/src/main/kotlin/org/tally/nutrition/add/AddEntryScreen.kt
 nutrition/src/main/kotlin/org/tally/nutrition/food/FoodEditorScreen.kt
 nutrition/src/main/kotlin/org/tally/nutrition/recipe/RecipeEditorScreen.kt
