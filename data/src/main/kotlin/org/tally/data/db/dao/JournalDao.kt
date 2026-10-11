@@ -6,15 +6,15 @@ import androidx.room.Insert
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 import org.tally.data.db.entity.JournalEntryEntity
-import org.tally.domain.model.BaseUnit
+import org.tally.domain.model.QuantityUnit
 
 data class JournalRow(
     val id: Long,
     @ColumnInfo(name = "meal_slot_id") val mealSlotId: Long,
     @ColumnInfo(name = "recipe_id") val recipeId: Long?,
     val name: String?,
-    @ColumnInfo(name = "base_unit") val baseUnit: BaseUnit?,
     @ColumnInfo(name = "quantity_base") val quantityBase: Double,
+    @ColumnInfo(name = "quantity_unit") val quantityUnit: QuantityUnit,
     @ColumnInfo(name = "portion_count") val portionCount: Double?,
     @ColumnInfo(name = "energy_kcal") val energyKcal: Double,
     @ColumnInfo(name = "protein_g") val proteinG: Double,
@@ -25,8 +25,8 @@ data class JournalRow(
 @Dao
 interface JournalDao {
     @Query(
-        "SELECT j.id, j.meal_slot_id, j.recipe_id, COALESCE(f.name, r.name) AS name, f.base_unit, " +
-            "j.quantity_base, j.portion_count, j.energy_kcal, j.protein_g, j.carbs_g, j.fat_g " +
+        "SELECT j.id, j.meal_slot_id, j.recipe_id, COALESCE(f.name, r.name) AS name, " +
+            "j.quantity_base, j.quantity_unit, j.portion_count, j.energy_kcal, j.protein_g, j.carbs_g, j.fat_g " +
             "FROM journal_entry j " +
             "LEFT JOIN food f ON f.id = j.food_id " +
             "LEFT JOIN recipe r ON r.id = j.recipe_id " +

@@ -8,6 +8,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.tally.core.time.AppClock
+import kotlinx.coroutines.flow.emptyFlow
 
 class NutritionTest {
     private val oats = Macros(energyKcal = 370.0, proteinG = 13.0, carbsG = 60.0, fatG = 7.0)
@@ -42,6 +43,15 @@ class NutritionTest {
     }
 
     @Test
+    fun recipeValidationRequiresIngredientsAndServings() {
+        val ing = RecipeIngredient(1, "Avoine", 80.0, oats)
+        assertTrue(RecipeValidation.isValid(Recipe(name = "P", servings = 2.0, ingredients = listOf(ing))))
+        assertFalse(RecipeValidation.isValid(Recipe(name = "P", servings = 0.0, ingredients = listOf(ing))))
+        assertFalse(RecipeValidation.isValid(Recipe(name = "P", servings = 1.0, ingredients = emptyList())))
+        assertFalse(RecipeValidation.isValid(Recipe(name = " ", servings = 1.0, ingredients = listOf(ing))))
+    }
+
+    @Test
     fun logFoodStoresSnapshot() = runTest {
         var captured: NewJournalEntry? = null
         val journal = object : JournalRepository {
@@ -57,5 +67,28 @@ class NutritionTest {
         assertEquals(7L, entry.foodId)
         assertEquals(148.0, entry.macros.energyKcal, 1e-9)
         assertEquals(42L, entry.loggedAt)
+        assertEquals(org.tally.domain.model.QuantityUnit.G, entry.quantityUnit)
+    }
+}
+
+class SaveUseCasesTest {
+    private class RecordingFoodRepository : FoodRepository {
+        var saved = 0
+        override fun search(query: String): Flow<List<Food>> = emptyFlow()
+        override suspend fun get(id: Long): FoodWithPortions? = null
+        override suspend fun save(food: Food, portions: List<FoodPortion>): Long { saved++; return 1 }
+        override suspend fun archive(id: Long) = Unit
+    }
+
+    @Test
+    fun saveFoodRejectsInvalidInputWithoutWriting() = runTest {
+        val repo = RecordingFoodRepository()
+        val useCase = SaveFood(repo)
+        assertEquals(null, useCase(Food(name = "", per100 = Macros()), emptyList()))
+        assertEquals(null, useCase(Food(name = "X", per100 = Macros(1.0)), listOf(FoodPortion(label = "", quantityBase = 10.0))))
+        assertEquals(null, useCase(Food(name = "X", per100 = Macros(1.0)), listOf(FoodPortion(label = "a", quantityBase = 0.0))))
+        assertEquals(0, repo.saved)
+        assertEquals(1L, useCase(Food(name = "X", per100 = Macros(1.0)), listOf(FoodPortion(label = "a", quantityBase = 5.0))))
+        assertEquals(1, repo.saved)
     }
 }

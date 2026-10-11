@@ -102,14 +102,14 @@ fun FoodEditorScreen(onDone: () -> Unit, viewModel: FoodEditorViewModel = hiltVi
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = draft.label,
-                    onValueChange = { draft.label = it },
+                    onValueChange = draft::updateLabel,
                     label = { Text(stringResource(R.string.food_portion_label)) },
                     singleLine = true,
                     modifier = Modifier.weight(1f),
                 )
                 OutlinedTextField(
                     value = draft.quantity,
-                    onValueChange = { draft.quantity = it },
+                    onValueChange = draft::updateQuantity,
                     label = { Text(stringResource(R.string.food_portion_quantity)) },
                     singleLine = true,
                     keyboardOptions = numeric,
@@ -117,7 +117,7 @@ fun FoodEditorScreen(onDone: () -> Unit, viewModel: FoodEditorViewModel = hiltVi
                 )
             }
         }
-        OutlinedButton(onClick = { viewModel.portions.add(PortionDraft()) }) {
+        OutlinedButton(onClick = viewModel::addPortion) {
             Text(stringResource(R.string.food_add_portion))
         }
 

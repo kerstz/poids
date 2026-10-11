@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import org.tally.domain.model.QuantityUnit
 
 /**
  * Entrée de journal : référence (aliment XOR recette) + quantité résolue + snapshot nutriments.
@@ -55,6 +56,7 @@ data class JournalEntryEntity(
     @ColumnInfo(name = "portion_id") val portionId: Long? = null,
     @ColumnInfo(name = "portion_count") val portionCount: Double? = null,
     @ColumnInfo(name = "quantity_base") val quantityBase: Double,
+    @ColumnInfo(name = "quantity_unit") val quantityUnit: QuantityUnit,
     @ColumnInfo(name = "energy_kcal") val energyKcal: Double,
     @ColumnInfo(name = "protein_g") val proteinG: Double,
     @ColumnInfo(name = "carbs_g") val carbsG: Double,

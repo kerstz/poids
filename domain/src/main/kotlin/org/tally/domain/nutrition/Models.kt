@@ -2,6 +2,7 @@ package org.tally.domain.nutrition
 
 import org.tally.domain.model.BaseUnit
 import org.tally.domain.model.FoodSource
+import org.tally.domain.model.QuantityUnit
 
 /** Énergie (kcal) et macronutriments (g). */
 data class Macros(
@@ -81,9 +82,9 @@ data class JournalItem(
     val id: Long,
     val mealSlotId: Long,
     val name: String,
-    /** g/ml pour un aliment ; nombre de portions pour une recette. */
+    /** Exprimée dans [quantityUnit] : g/ml pour un aliment, nombre de portions pour une recette. */
     val quantityBase: Double,
-    val baseUnit: BaseUnit?,
+    val quantityUnit: QuantityUnit,
     val isRecipe: Boolean,
     val portionCount: Double?,
     val macros: Macros,
@@ -97,6 +98,7 @@ data class NewJournalEntry(
     val portionId: Long?,
     val portionCount: Double?,
     val quantityBase: Double,
+    val quantityUnit: QuantityUnit,
     val macros: Macros,
     val loggedAt: Long,
     val zoneId: String,
@@ -113,6 +115,14 @@ object NutritionCalc {
     fun macrosFor(per100: Macros, quantityBase: Double): Macros = per100 * (quantityBase / 100.0)
 
     fun total(items: List<JournalItem>): Macros = items.fold(Macros.ZERO) { acc, i -> acc + i.macros }
+}
+
+object RecipeValidation {
+    fun isValid(recipe: Recipe): Boolean =
+        recipe.name.isNotBlank() &&
+            recipe.servings.isFinite() && recipe.servings > 0 &&
+            recipe.ingredients.isNotEmpty() &&
+            recipe.ingredients.all { it.quantityBase.isFinite() && it.quantityBase > 0 }
 }
 
 object FoodValidation {

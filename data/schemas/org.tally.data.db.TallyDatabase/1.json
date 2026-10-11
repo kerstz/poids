@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "20a2f7639c576c377b0e1fcaf3401044",
+    "identityHash": "039acc86c3c2a4cf0a49c2a721ae8362",
     "entities": [
       {
         "tableName": "profile",
@@ -515,7 +515,7 @@
       },
       {
         "tableName": "journal_entry",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `local_date` INTEGER NOT NULL, `meal_slot_id` INTEGER NOT NULL, `food_id` INTEGER, `recipe_id` INTEGER, `portion_id` INTEGER, `portion_count` REAL, `quantity_base` REAL NOT NULL, `energy_kcal` REAL NOT NULL, `protein_g` REAL NOT NULL, `carbs_g` REAL NOT NULL, `fat_g` REAL NOT NULL, `logged_at` INTEGER NOT NULL, `zone_id` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, FOREIGN KEY(`meal_slot_id`) REFERENCES `meal_slot`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`food_id`) REFERENCES `food`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`recipe_id`) REFERENCES `recipe`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`portion_id`) REFERENCES `food_portion`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `local_date` INTEGER NOT NULL, `meal_slot_id` INTEGER NOT NULL, `food_id` INTEGER, `recipe_id` INTEGER, `portion_id` INTEGER, `portion_count` REAL, `quantity_base` REAL NOT NULL, `quantity_unit` TEXT NOT NULL, `energy_kcal` REAL NOT NULL, `protein_g` REAL NOT NULL, `carbs_g` REAL NOT NULL, `fat_g` REAL NOT NULL, `logged_at` INTEGER NOT NULL, `zone_id` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, FOREIGN KEY(`meal_slot_id`) REFERENCES `meal_slot`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`food_id`) REFERENCES `food`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`recipe_id`) REFERENCES `recipe`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`portion_id`) REFERENCES `food_portion`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
         "fields": [
           {
             "fieldPath": "id",
@@ -559,6 +559,12 @@
             "fieldPath": "quantityBase",
             "columnName": "quantity_base",
             "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "quantityUnit",
+            "columnName": "quantity_unit",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -989,7 +995,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '20a2f7639c576c377b0e1fcaf3401044')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '039acc86c3c2a4cf0a49c2a721ae8362')"
     ]
   }
 }

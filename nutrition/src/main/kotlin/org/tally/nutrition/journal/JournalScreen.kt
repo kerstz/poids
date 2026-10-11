@@ -40,7 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import org.tally.domain.model.BaseUnit
+import org.tally.domain.model.QuantityUnit
 import org.tally.domain.nutrition.JournalItem
 import org.tally.domain.nutrition.MealSlot
 import org.tally.nutrition.R
@@ -173,10 +173,10 @@ private fun slotLabel(slot: MealSlot): String = slot.name ?: when (slot.builtinK
 
 @Composable
 private fun EntryRow(item: JournalItem, onDelete: () -> Unit) {
-    val quantity = when {
-        item.isRecipe -> stringResource(R.string.entry_servings, formatNumber(item.quantityBase, 1))
-        item.baseUnit == BaseUnit.ML -> stringResource(R.string.entry_ml, formatNumber(item.quantityBase))
-        else -> stringResource(R.string.entry_g, formatNumber(item.quantityBase))
+    val quantity = when (item.quantityUnit) {
+        QuantityUnit.SERVING -> stringResource(R.string.entry_servings, formatNumber(item.quantityBase, 1))
+        QuantityUnit.ML -> stringResource(R.string.entry_ml, formatNumber(item.quantityBase))
+        QuantityUnit.G -> stringResource(R.string.entry_g, formatNumber(item.quantityBase))
     }
     ListItem(
         headlineContent = { Text(item.name) },
