@@ -24,6 +24,8 @@ interface JournalRepository {
     fun observeDay(epochDay: Long): Flow<List<JournalItem>>
     suspend fun add(entry: NewJournalEntry): Long
     suspend fun delete(id: Long)
+    /** Copie réinsérable de l'entrée [id] (pour « Annuler » après suppression) ; null si absente. */
+    suspend fun snapshot(id: Long): NewJournalEntry? = null
 }
 
 interface MealSlotRepository {

@@ -1,6 +1,7 @@
 plugins {
     id("tally.android.library")
     id("tally.android.compose")
+    id("tally.android.screenshot")
 }
 
 android {

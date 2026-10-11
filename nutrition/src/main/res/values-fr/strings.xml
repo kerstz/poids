@@ -6,7 +6,6 @@
     <string name="journal_previous_day">Jour précédent</string>
     <string name="journal_next_day">Jour suivant</string>
     <string name="journal_kcal_of_target">%1$s / %2$s kcal</string>
-    <string name="journal_kcal_only">%1$s kcal</string>
     <string name="journal_set_target">Définir l\'objectif quotidien</string>
     <string name="journal_target_label">Objectif énergétique quotidien (kcal)</string>
     <string name="journal_add_to_slot">Ajouter au repas : %1$s</string>
@@ -64,4 +63,13 @@
     <string name="online_disabled">Les recherches en ligne sont désactivées dans les Réglages.</string>
     <string name="online_rate_limited">Trop de requêtes. Réessaie dans %1$d s.</string>
     <string name="online_attribution">Données Open Food Facts, disponibles sous licence Open Database License (ODbL).</string>
+    <string name="journal_kcal_unit">kcal</string>
+    <string name="journal_kcal_of_target_label">sur %1$s kcal</string>
+    <string name="journal_empty_title">Rien de noté</string>
+    <string name="journal_empty_body">Ajoute ce que tu manges pour suivre ta journée.</string>
+    <string name="journal_deleted">%1$s supprimé</string>
+    <string name="action_undo">Annuler</string>
+    <string name="macro_legend_protein">P %1$s g</string>
+    <string name="macro_legend_carbs">G %1$s g</string>
+    <string name="macro_legend_fat">L %1$s g</string>
 </resources>

@@ -58,6 +58,22 @@ class JournalRepositoryImpl @Inject constructor(
 
     override suspend fun delete(id: Long) = dao.delete(id)
 
+    override suspend fun snapshot(id: Long): NewJournalEntry? = dao.get(id)?.let {
+        NewJournalEntry(
+            epochDay = it.localEpochDay,
+            mealSlotId = it.mealSlotId,
+            foodId = it.foodId,
+            recipeId = it.recipeId,
+            portionId = it.portionId,
+            portionCount = it.portionCount,
+            quantityBase = it.quantityBase,
+            quantityUnit = it.quantityUnit,
+            macros = Macros(it.energyKcal, it.proteinG, it.carbsG, it.fatG),
+            loggedAt = it.loggedAt,
+            zoneId = it.zoneId,
+        )
+    }
+
     private fun JournalRow.toDomain() = JournalItem(
         id = id,
         mealSlotId = mealSlotId,
