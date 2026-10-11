@@ -43,7 +43,16 @@ class FoodRepositoryImpl @Inject constructor(
         } else {
             val existing = requireNotNull(dao.get(food.id)) { "aliment ${food.id} introuvable" }
             dao.updateWithPortions(
-                food.toEntity(createdAt = existing.createdAt, updatedAt = now).copy(archivedAt = existing.archivedAt),
+                // Colonnes absentes du domaine : reprises de la ligne existante (sinon écrasées par NULL).
+                food.toEntity(createdAt = existing.createdAt, updatedAt = now).copy(
+                    archivedAt = existing.archivedAt,
+                    offLastModified = existing.offLastModified,
+                    densityGPerMl = existing.densityGPerMl,
+                    sugarsG = existing.sugarsG,
+                    satFatG = existing.satFatG,
+                    fiberG = existing.fiberG,
+                    saltG = existing.saltG,
+                ),
                 portionEntities,
             )
             food.id
