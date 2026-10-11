@@ -21,6 +21,7 @@ import org.tally.domain.nutrition.Macros
 import org.tally.domain.nutrition.MealSlot
 import org.tally.domain.nutrition.MealSlotRepository
 import org.tally.domain.nutrition.NewJournalEntry
+import org.tally.domain.nutrition.NutrientDetail
 import kotlinx.coroutines.flow.combine
 
 @Singleton
@@ -36,6 +37,8 @@ class JournalRepositoryImpl @Inject constructor(
         val now = clock.nowMillis()
         return dao.insert(
             JournalEntryEntity(
+                name = entry.name,
+                brand = entry.brand,
                 localEpochDay = entry.epochDay,
                 mealSlotId = entry.mealSlotId,
                 foodId = entry.foodId,
@@ -48,6 +51,10 @@ class JournalRepositoryImpl @Inject constructor(
                 proteinG = entry.macros.proteinG,
                 carbsG = entry.macros.carbsG,
                 fatG = entry.macros.fatG,
+                sugarsG = entry.detail.sugarsG,
+                satFatG = entry.detail.satFatG,
+                fiberG = entry.detail.fiberG,
+                saltG = entry.detail.saltG,
                 loggedAt = entry.loggedAt,
                 zoneId = entry.zoneId,
                 createdAt = now,
@@ -60,6 +67,8 @@ class JournalRepositoryImpl @Inject constructor(
 
     override suspend fun snapshot(id: Long): NewJournalEntry? = dao.get(id)?.let {
         NewJournalEntry(
+            name = it.name,
+            brand = it.brand,
             epochDay = it.localEpochDay,
             mealSlotId = it.mealSlotId,
             foodId = it.foodId,
@@ -69,6 +78,7 @@ class JournalRepositoryImpl @Inject constructor(
             quantityBase = it.quantityBase,
             quantityUnit = it.quantityUnit,
             macros = Macros(it.energyKcal, it.proteinG, it.carbsG, it.fatG),
+            detail = NutrientDetail(it.sugarsG, it.satFatG, it.fiberG, it.saltG),
             loggedAt = it.loggedAt,
             zoneId = it.zoneId,
         )
@@ -77,12 +87,13 @@ class JournalRepositoryImpl @Inject constructor(
     private fun JournalRow.toDomain() = JournalItem(
         id = id,
         mealSlotId = mealSlotId,
-        name = name.orEmpty(),
+        name = name,
         quantityBase = quantityBase,
         quantityUnit = quantityUnit,
         isRecipe = recipeId != null,
         portionCount = portionCount,
         macros = Macros(energyKcal, proteinG, carbsG, fatG),
+        detail = NutrientDetail(sugarsG, satFatG, fiberG, saltG),
     )
 }
 

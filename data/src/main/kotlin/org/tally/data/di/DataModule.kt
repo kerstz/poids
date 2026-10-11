@@ -94,6 +94,7 @@ object DataProvidersModule {
     fun provideDatabase(@ApplicationContext context: Context): TallyDatabase =
         Room.databaseBuilder(context, TallyDatabase::class.java, TallyDatabase.NAME)
             .addCallback(TallyDatabase.seedCallback)
+            .addMigrations(*TallyDatabase.ALL_MIGRATIONS)
             .build()
 
     @Provides

@@ -22,6 +22,8 @@ class LogFood(
         require(quantityBase > 0 && quantityBase.isFinite()) { "quantité invalide" }
         return journal.add(
             NewJournalEntry(
+                name = food.name,
+                brand = food.brand,
                 epochDay = epochDay,
                 mealSlotId = mealSlotId,
                 foodId = food.id,
@@ -31,6 +33,7 @@ class LogFood(
                 quantityBase = quantityBase,
                 quantityUnit = if (food.baseUnit == BaseUnit.ML) QuantityUnit.ML else QuantityUnit.G,
                 macros = NutritionCalc.macrosFor(food.per100, quantityBase),
+                detail = food.per100Detail * (quantityBase / 100.0),
                 loggedAt = clock.nowMillis(),
                 zoneId = zone().id,
             ),
@@ -53,6 +56,8 @@ class LogRecipe(
         require(servings > 0 && servings.isFinite()) { "portions invalides" }
         return journal.add(
             NewJournalEntry(
+                name = recipe.name,
+                brand = null,
                 epochDay = epochDay,
                 mealSlotId = mealSlotId,
                 foodId = null,

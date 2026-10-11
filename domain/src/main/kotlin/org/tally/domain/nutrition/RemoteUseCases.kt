@@ -32,13 +32,30 @@ class ResolveBarcode(
 /**
  * Copie un produit distant dans `food` (source OFF) pour qu'il reste utilisable hors ligne et
  * que le cache puisse être purgé sans casser l'historique. Dédoublonne par code-barres.
+ *
+ * Politique : un code-barres = une ligne. Si l'aliment existe mais est archivé, il est désarchivé et
+ * rafraîchi avec les données OFF (nom, marque, macros), en conservant ses portions et son id : le
+ * journal est figé, l'historique ne bouge pas.
  */
 class ImportRemoteFood(
     private val foods: FoodRepository,
     private val saveFood: SaveFood,
 ) {
     suspend operator fun invoke(remote: RemoteFood): Food? {
-        foods.findByBarcode(remote.barcode)?.let { return it }
+        foods.findByBarcodeAny(remote.barcode)?.let { existing ->
+            if (!existing.isArchived) return existing
+            val portions = foods.get(existing.id)?.portions.orEmpty()
+            val refreshed = existing.copy(
+                name = remote.name,
+                brand = remote.brand,
+                source = FoodSource.OFF,
+                per100 = remote.per100,
+                isArchived = false,
+            )
+            if (saveFood(refreshed, portions) == null) return null
+            foods.unarchive(existing.id)
+            return refreshed
+        }
         val food = Food(
             name = remote.name,
             brand = remote.brand,

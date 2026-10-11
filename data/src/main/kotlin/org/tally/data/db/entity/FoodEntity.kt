@@ -8,10 +8,10 @@ import androidx.room.PrimaryKey
 import org.tally.domain.model.BaseUnit
 import org.tally.domain.model.FoodSource
 
-/** Valeurs nutritionnelles pour 100 g (ou 100 ml selon `base_unit`). */
+/** Valeurs nutritionnelles pour 100 g (ou 100 ml selon `base_unit`). `barcode` unique (NULL multiples permis). */
 @Entity(
     tableName = "food",
-    indices = [Index("barcode"), Index(value = ["archived_at", "name"])],
+    indices = [Index(value = ["barcode"], unique = true), Index(value = ["archived_at", "name"])],
 )
 data class FoodEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,

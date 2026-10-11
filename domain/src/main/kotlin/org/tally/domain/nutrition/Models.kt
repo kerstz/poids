@@ -30,6 +30,32 @@ data class Macros(
     }
 }
 
+/** Nutriments optionnels (g). `null` = inconnu, distinct de 0. Additionnables : une somme partielle reste connue. */
+data class NutrientDetail(
+    val sugarsG: Double? = null,
+    val satFatG: Double? = null,
+    val fiberG: Double? = null,
+    val saltG: Double? = null,
+) {
+    operator fun times(factor: Double) = NutrientDetail(
+        sugarsG?.times(factor), satFatG?.times(factor), fiberG?.times(factor), saltG?.times(factor),
+    )
+
+    operator fun plus(other: NutrientDetail) = NutrientDetail(
+        sum(sugarsG, other.sugarsG),
+        sum(satFatG, other.satFatG),
+        sum(fiberG, other.fiberG),
+        sum(saltG, other.saltG),
+    )
+
+    private fun sum(a: Double?, b: Double?): Double? =
+        if (a == null && b == null) null else (a ?: 0.0) + (b ?: 0.0)
+
+    companion object {
+        val UNKNOWN = NutrientDetail()
+    }
+}
+
 /** Aliment. [per100] = valeurs pour 100 g (ou 100 ml selon [baseUnit]). `id = 0` : nouvel aliment. */
 data class Food(
     val id: Long = 0,
@@ -39,6 +65,11 @@ data class Food(
     val source: FoodSource = FoodSource.USER,
     val baseUnit: BaseUnit = BaseUnit.G,
     val per100: Macros,
+    val per100Detail: NutrientDetail = NutrientDetail.UNKNOWN,
+    /** g/ml, pour convertir un aliment liquide ; non additionnable, donc hors [NutrientDetail]. */
+    val densityGPerMl: Double? = null,
+    /** Renseigné en lecture seulement (archivage logique) ; ignoré à l'écriture. */
+    val isArchived: Boolean = false,
 )
 
 data class FoodPortion(
@@ -88,9 +119,13 @@ data class JournalItem(
     val isRecipe: Boolean,
     val portionCount: Double?,
     val macros: Macros,
+    val detail: NutrientDetail = NutrientDetail.UNKNOWN,
 )
 
 data class NewJournalEntry(
+    /** Nom figé à la saisie : renommer l'aliment ne réécrit pas l'historique. */
+    val name: String,
+    val brand: String?,
     val epochDay: Long,
     val mealSlotId: Long,
     val foodId: Long?,
@@ -100,6 +135,7 @@ data class NewJournalEntry(
     val quantityBase: Double,
     val quantityUnit: QuantityUnit,
     val macros: Macros,
+    val detail: NutrientDetail = NutrientDetail.UNKNOWN,
     val loggedAt: Long,
     val zoneId: String,
 )

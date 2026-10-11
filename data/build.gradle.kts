@@ -12,6 +12,15 @@ android {
     }
 }
 
+// Schémas exportés visibles des tests de migration (MigrationTestHelper lit les assets).
+androidComponents {
+    onVariants { variant ->
+        variant.nestedComponents
+            .filterIsInstance<com.android.build.api.variant.UnitTest>()
+            .forEach { it.sources.assets?.addStaticSourceDirectory("$projectDir/schemas") }
+    }
+}
+
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
@@ -26,6 +35,7 @@ dependencies {
     ksp(libs.room.compiler)
 
     testImplementation(libs.robolectric)
+    testImplementation(libs.room.testing)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.kotlinx.coroutines.test)
 }

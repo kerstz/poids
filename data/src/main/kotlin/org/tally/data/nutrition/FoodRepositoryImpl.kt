@@ -13,6 +13,7 @@ import org.tally.domain.nutrition.FoodPortion
 import org.tally.domain.nutrition.FoodRepository
 import org.tally.domain.nutrition.FoodWithPortions
 import org.tally.domain.nutrition.Macros
+import org.tally.domain.nutrition.NutrientDetail
 
 @Singleton
 class FoodRepositoryImpl @Inject constructor(
@@ -33,6 +34,10 @@ class FoodRepositoryImpl @Inject constructor(
 
     override suspend fun findByBarcode(barcode: String): Food? = dao.findByBarcode(barcode)?.toDomain()
 
+    override suspend fun findByBarcodeAny(barcode: String): Food? = dao.findByBarcodeAny(barcode)?.toDomain()
+
+    override suspend fun unarchive(id: Long) = dao.unarchive(id, clock.nowMillis())
+
     override suspend fun save(food: Food, portions: List<FoodPortion>): Long {
         val now = clock.nowMillis()
         val portionEntities = portions.map {
@@ -43,15 +48,10 @@ class FoodRepositoryImpl @Inject constructor(
         } else {
             val existing = requireNotNull(dao.get(food.id)) { "aliment ${food.id} introuvable" }
             dao.updateWithPortions(
-                // Colonnes absentes du domaine : reprises de la ligne existante (sinon écrasées par NULL).
+                // `off_last_modified` et l'archivage ne sont pas portés par le domaine : repris tels quels.
                 food.toEntity(createdAt = existing.createdAt, updatedAt = now).copy(
                     archivedAt = existing.archivedAt,
                     offLastModified = existing.offLastModified,
-                    densityGPerMl = existing.densityGPerMl,
-                    sugarsG = existing.sugarsG,
-                    satFatG = existing.satFatG,
-                    fiberG = existing.fiberG,
-                    saltG = existing.saltG,
                 ),
                 portionEntities,
             )
@@ -68,10 +68,15 @@ class FoodRepositoryImpl @Inject constructor(
         barcode = barcode,
         source = source,
         baseUnit = baseUnit,
+        densityGPerMl = densityGPerMl,
         energyKcal = per100.energyKcal,
         proteinG = per100.proteinG,
         carbsG = per100.carbsG,
         fatG = per100.fatG,
+        sugarsG = per100Detail.sugarsG,
+        satFatG = per100Detail.satFatG,
+        fiberG = per100Detail.fiberG,
+        saltG = per100Detail.saltG,
         createdAt = createdAt,
         updatedAt = updatedAt,
     )
@@ -84,6 +89,9 @@ class FoodRepositoryImpl @Inject constructor(
         source = source,
         baseUnit = baseUnit,
         per100 = Macros(energyKcal, proteinG, carbsG, fatG),
+        per100Detail = NutrientDetail(sugarsG, satFatG, fiberG, saltG),
+        densityGPerMl = densityGPerMl,
+        isArchived = archivedAt != null,
     )
 
     private companion object {

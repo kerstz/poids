@@ -8,6 +8,10 @@ interface FoodRepository {
     suspend fun get(id: Long): FoodWithPortions?
     /** Aliment non archivé portant ce code-barres, s'il existe. */
     suspend fun findByBarcode(barcode: String): Food?
+    /** Comme [findByBarcode] mais archivés inclus (`Food.isArchived`) : l'index code-barres est unique. */
+    suspend fun findByBarcodeAny(barcode: String): Food?
+    /** Rend un aliment archivé à nouveau visible dans les recherches. */
+    suspend fun unarchive(id: Long)
     suspend fun save(food: Food, portions: List<FoodPortion>): Long
     /** Archivage : l'aliment disparaît des recherches mais l'historique reste intact. */
     suspend fun archive(id: Long)

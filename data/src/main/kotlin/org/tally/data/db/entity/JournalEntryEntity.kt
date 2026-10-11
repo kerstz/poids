@@ -49,6 +49,9 @@ import org.tally.domain.model.QuantityUnit
 )
 data class JournalEntryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    /** Nom et marque figés à la saisie (pas de jointure vivante). */
+    @ColumnInfo(defaultValue = "") val name: String,
+    val brand: String? = null,
     @ColumnInfo(name = "local_date") val localEpochDay: Long,
     @ColumnInfo(name = "meal_slot_id") val mealSlotId: Long,
     @ColumnInfo(name = "food_id") val foodId: Long? = null,
@@ -61,6 +64,10 @@ data class JournalEntryEntity(
     @ColumnInfo(name = "protein_g") val proteinG: Double,
     @ColumnInfo(name = "carbs_g") val carbsG: Double,
     @ColumnInfo(name = "fat_g") val fatG: Double,
+    @ColumnInfo(name = "sugars_g") val sugarsG: Double? = null,
+    @ColumnInfo(name = "sat_fat_g") val satFatG: Double? = null,
+    @ColumnInfo(name = "fiber_g") val fiberG: Double? = null,
+    @ColumnInfo(name = "salt_g") val saltG: Double? = null,
     @ColumnInfo(name = "logged_at") val loggedAt: Long,
     @ColumnInfo(name = "zone_id") val zoneId: String,
     @ColumnInfo(name = "created_at") val createdAt: Long,
