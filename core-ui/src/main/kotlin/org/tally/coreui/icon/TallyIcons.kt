@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.coreui.icon
 
 import androidx.annotation.DrawableRes
@@ -12,4 +13,8 @@ object TallyIcons {
     @DrawableRes val restaurant: Int = R.drawable.ic_restaurant
     @DrawableRes val showChart: Int = R.drawable.ic_show_chart
     @DrawableRes val scan: Int = R.drawable.ic_scan
+    @DrawableRes val navJournal: Int = R.drawable.ic_nav_journal
+    @DrawableRes val navBody: Int = R.drawable.ic_nav_body
+    @DrawableRes val navActivity: Int = R.drawable.ic_nav_activity
+    @DrawableRes val navSettings: Int = R.drawable.ic_nav_settings
 }

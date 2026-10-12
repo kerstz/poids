@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.body.weight
 
 import androidx.compose.foundation.layout.Box

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.activity
 
 import androidx.compose.runtime.Composable

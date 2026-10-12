@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.nutrition.recipe
 
 import androidx.compose.foundation.clickable
@@ -11,8 +12,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -24,6 +23,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.painterResource
+import org.tally.coreui.icon.TallyIcons
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -84,7 +85,7 @@ fun RecipeEditorScreen(onDone: () -> Unit, viewModel: RecipeEditorViewModel = hi
                 },
                 trailingContent = {
                     IconButton(onClick = { viewModel.removeIngredient(index) }) {
-                        Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
+                        Icon(painterResource(TallyIcons.delete), contentDescription = stringResource(R.string.action_delete))
                     }
                 },
             )

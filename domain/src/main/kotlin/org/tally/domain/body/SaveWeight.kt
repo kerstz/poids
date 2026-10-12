@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.domain.body
 
 /** Écriture validée du poids (bornes [WeightValidation]) : saisie, import et restauration passent ici. */

@@ -1,7 +1,9 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.app.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -41,7 +43,7 @@ fun TallyApp() {
                                 restoreState = true
                             }
                         },
-                        icon = { Icon(destination.icon, contentDescription = null) },
+                        icon = { Icon(painterResource(destination.icon), contentDescription = null) },
                         label = { Text(stringResource(destination.labelRes)) },
                     )
                 }

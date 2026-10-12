@@ -23,9 +23,21 @@
     <string name="data_restore_hint">Remplacer toutes les données par une sauvegarde (annulable)</string>
     <string name="data_export_weight">Exporter le poids</string>
     <string name="data_export_journal">Exporter le journal alimentaire</string>
-    <string name="data_backup_saved">Sauvegarde enregistrée (%1$d lignes).</string>
-    <string name="data_exported">%1$d lignes exportées.</string>
-    <string name="data_restored">Données restaurées (%1$d lignes).</string>
+    <plurals name="data_backup_saved">
+        <item quantity="one">Sauvegarde enregistrée (%1$d ligne).</item>
+        <item quantity="many">Sauvegarde enregistrée (%1$d lignes).</item>
+        <item quantity="other">Sauvegarde enregistrée (%1$d lignes).</item>
+    </plurals>
+    <plurals name="data_exported">
+        <item quantity="one">%1$d ligne exportée.</item>
+        <item quantity="many">%1$d lignes exportées.</item>
+        <item quantity="other">%1$d lignes exportées.</item>
+    </plurals>
+    <plurals name="data_restored">
+        <item quantity="one">Données restaurées (%1$d ligne).</item>
+        <item quantity="many">Données restaurées (%1$d lignes).</item>
+        <item quantity="other">Données restaurées (%1$d lignes).</item>
+    </plurals>
     <string name="data_undo">Annuler</string>
     <string name="data_undone">Données précédentes rétablies.</string>
     <string name="data_err_io">Impossible de lire ou d\'écrire le fichier.</string>
@@ -35,4 +47,11 @@
     <string name="data_err_invalid">La sauvegarde contient des données invalides. Rien n\'a été modifié.</string>
     <string name="data_err_large">La sauvegarde est trop volumineuse.</string>
     <string name="data_err_nothing">Rien à annuler.</string>
+    <string name="about_title">À propos</string>
+    <string name="about_version">Tally %1$s</string>
+    <string name="about_license">Logiciel libre, GNU GPL v3 ou ultérieure. Sans publicité, sans pistage, sans compte.</string>
+    <string name="about_source_code">Code source et licence</string>
+    <string name="about_data_ciqual">Composition des aliments : table Anses – Ciqual 2020, Licence Ouverte (Etalab). Produits : Open Food Facts (ODbL).</string>
+    <string name="about_show_libraries">Afficher les bibliothèques</string>
+    <string name="about_hide_libraries">Masquer les bibliothèques</string>
 </resources>

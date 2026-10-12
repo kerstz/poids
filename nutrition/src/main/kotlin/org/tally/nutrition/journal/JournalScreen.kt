@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.nutrition.journal
 
 import androidx.compose.material3.SnackbarDuration
@@ -9,7 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -25,12 +26,12 @@ fun JournalScreen(
     var editingTarget by remember { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
 
-    val context = LocalContext.current
+    val resources = LocalResources.current
     val undoLabel = stringResource(R.string.action_undo)
     LaunchedEffect(viewModel) {
         viewModel.deleted.collect { entry ->
             val result = snackbar.showSnackbar(
-                message = context.getString(R.string.journal_deleted, entry.name),
+                message = resources.getString(R.string.journal_deleted, entry.name),
                 actionLabel = undoLabel,
                 duration = SnackbarDuration.Long,
             )

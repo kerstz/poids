@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.coreui.theme
 
 import androidx.compose.animation.core.CubicBezierEasing

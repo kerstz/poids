@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.nutrition.add
 
 import android.content.pm.PackageManager

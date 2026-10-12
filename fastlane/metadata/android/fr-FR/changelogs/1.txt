@@ -1,0 +1,1 @@
+Première version : journal alimentaire, poids, scan de code-barres, table Ciqual hors ligne, sauvegarde ZIP et export CSV.

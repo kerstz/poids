@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.domain.nutrition
 
 /** Produit issu d'une base distante (Open Food Facts). Valeurs pour 100 g. */

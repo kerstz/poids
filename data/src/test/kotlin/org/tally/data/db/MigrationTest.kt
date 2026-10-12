@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.data.db
 
 import android.database.sqlite.SQLiteConstraintException
@@ -135,5 +136,16 @@ class MigrationTest {
     fun migrateAll1To3() {
         helper.createDatabase("mig13", 1).close()
         helper.runMigrationsAndValidate("mig13", 3, true, *TallyDatabase.ALL_MIGRATIONS).close()
+    }
+
+    /** Gel du schéma : chaque version exportée a sa migration n → n+1, et la dernière = `version` de la base. */
+    @Test
+    fun everyExportedSchemaVersionHasAMigrationToTheNext() {
+        val dir = java.io.File("schemas/org.tally.data.db.TallyDatabase")
+        val versions = dir.listFiles { f -> f.name.endsWith(".json") }!!
+            .map { it.name.removeSuffix(".json").toInt() }.sorted()
+        assertEquals((1..versions.last()).toList(), versions) // pas de trou dans l'historique
+        val chain = TallyDatabase.ALL_MIGRATIONS.map { it.startVersion to it.endVersion }
+        assertEquals((1 until versions.last()).map { it to it + 1 }, chain)
     }
 }

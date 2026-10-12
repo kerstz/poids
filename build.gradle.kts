@@ -92,7 +92,85 @@ val checkDesignTokens = tasks.register("checkDesignTokens") {
     }
 }
 
+// Chaînes : aucune chaîne littérale dans l'UI et parité des clés FR/EN par module (jalon 8).
+val checkStrings = tasks.register("checkStrings") {
+    group = "verification"
+    description = "Aucun texte en dur dans les composables ; values/ et values-fr/ ont les mêmes clés."
+    val sources = fileTree(rootDir) {
+        include("*/src/main/**/*.kt")
+        exclude("Archive/**", "audit/**", "**/build/**")
+    }
+    val resources = fileTree(rootDir) {
+        include("*/src/main/res/values*/strings.xml")
+        exclude("Archive/**", "audit/**", "**/build/**")
+    }
+    inputs.files(sources, resources)
+    val rootPath = rootDir
+    doLast {
+        val hardcoded = listOf(
+            Regex("""\bText\(\s*"[^"$]"""),
+            Regex("""\bText\(\s*text\s*=\s*"[^"$]"""),
+            Regex("""contentDescription\s*=\s*"[^"$]"""),
+            Regex("""\b(label|title|placeholder|supportingText)\s*=\s*\{\s*Text\(\s*"[^"$]"""),
+        )
+        val allowed = Regex("""//\s*i18n-ok:\s*\S+""")
+        val violations = sources.files.sortedBy { it.path }.flatMap { file ->
+            val rel = file.relativeTo(rootPath).invariantSeparatorsPath
+            file.readLines().mapIndexedNotNull { i, line ->
+                val code = line.trim()
+                if (code.startsWith("//") || allowed.containsMatchIn(line)) return@mapIndexedNotNull null
+                if (hardcoded.any { it.containsMatchIn(line) }) "$rel:${i + 1}: texte en dur — ${code.take(80)}" else null
+            }
+        }
+        val keyRegex = Regex("""<(string|plurals|string-array)\s+name="([^"]+)"""")
+        val parity = resources.files.groupBy { it.parentFile.parentFile.parentFile.parentFile.name }.flatMap { (module, files) ->
+            val byLocale = files.associate { it.parentFile.name to keyRegex.findAll(it.readText()).map { m -> m.groupValues[2] }.toSet() }
+            val en = byLocale["values"] ?: emptySet()
+            val fr = byLocale["values-fr"] ?: emptySet()
+            (en - fr).map { "$module: clé absente en FR : $it" } + (fr - en).map { "$module: clé absente en EN : $it" }
+        }
+        val all = violations + parity
+        if (all.isNotEmpty()) {
+            throw GradleException("Chaînes :\n" + all.joinToString("\n") { " - $it" })
+        }
+        logger.lifecycle("Chaînes OK (${resources.files.size} fichiers, parité FR/EN)")
+    }
+}
+
+// Licences : toute bibliothèque du classpath release doit figurer dans app/src/main/assets/licenses.json.
+val checkLicenses = tasks.register("checkLicenses") {
+    group = "verification"
+    description = "Chaque groupe Maven de releaseRuntimeClasspath est déclaré dans licenses.json (écran À propos)."
+    notCompatibleWithConfigurationCache("résout releaseRuntimeClasspath à l'exécution")
+    val json = layout.projectDirectory.file("app/src/main/assets/licenses.json")
+    doLast {
+        val declared = Regex(""""group"\s*:\s*"([^"]+)"""").findAll(json.asFile.readText()).map { it.groupValues[1] }.toList()
+        val groups = project(":app").configurations.getByName("releaseRuntimeClasspath")
+            .incoming.resolutionResult.allComponents
+            .mapNotNull { (it.id as? org.gradle.api.artifacts.component.ModuleComponentIdentifier)?.group }
+            .toSortedSet()
+        val missing = groups.filter { g -> declared.none { d -> g == d || (d.endsWith(".") && g.startsWith(d)) } }
+        if (missing.isNotEmpty()) throw GradleException("Licences non déclarées dans licenses.json : $missing")
+        logger.lifecycle("Licences OK (${groups.size} groupes)")
+    }
+}
+
+// En-tête SPDX dans tous les fichiers Kotlin du projet.
+val checkLicenseHeaders = tasks.register("checkLicenseHeaders") {
+    group = "verification"
+    description = "Chaque fichier .kt/.kts source commence par SPDX-License-Identifier: GPL-3.0-or-later."
+    val files = fileTree(rootDir) {
+        include("**/src/**/*.kt", "build-logic/src/**/*.kts")
+        exclude("Archive/**", "audit/**", "**/build/**")
+    }
+    inputs.files(files)
+    doLast {
+        val bad = files.files.filter { !it.useLines { l -> l.firstOrNull().orEmpty().startsWith("// SPDX-License-Identifier: GPL-3.0-or-later") } }
+        if (bad.isNotEmpty()) throw GradleException("En-tête SPDX absent :\n" + bad.take(20).joinToString("\n") { " - $it" })
+    }
+}
+
 tasks.register("checkArchitecture") {
     group = "verification"
-    dependsOn(checkModuleGraph, checkNoDestructiveMigration, checkDesignTokens)
+    dependsOn(checkModuleGraph, checkNoDestructiveMigration, checkDesignTokens, checkStrings, checkLicenses, checkLicenseHeaders)
 }

@@ -1,0 +1,15 @@
+[
+  {"group": "androidx.", "name": "AndroidX / Jetpack (Compose, Room, Navigation, Lifecycle, CameraX…)", "license": "Apache-2.0"},
+  {"group": "org.jetbrains", "name": "JetBrains annotations", "license": "Apache-2.0"},
+  {"group": "org.jetbrains.", "name": "Kotlin, kotlinx.coroutines, kotlinx.serialization, Compose Multiplatform", "license": "Apache-2.0"},
+  {"group": "com.google.dagger", "name": "Dagger / Hilt", "license": "Apache-2.0"},
+  {"group": "javax.inject", "name": "javax.inject", "license": "Apache-2.0"},
+  {"group": "jakarta.inject", "name": "jakarta.inject", "license": "Apache-2.0"},
+  {"group": "com.squareup.", "name": "OkHttp, Okio", "license": "Apache-2.0"},
+  {"group": "com.patrykandpatrick.vico", "name": "Vico (graphiques)", "license": "Apache-2.0"},
+  {"group": "io.github.zxing-cpp", "name": "zxing-cpp (lecture des codes-barres)", "license": "Apache-2.0"},
+  {"group": "com.google.guava", "name": "Guava (ListenableFuture)", "license": "Apache-2.0"},
+  {"group": "com.google.auto.value", "name": "AutoValue annotations", "license": "Apache-2.0"},
+  {"group": "com.google.code.findbugs", "name": "JSR-305 annotations", "license": "Apache-2.0"},
+  {"group": "org.jspecify", "name": "JSpecify annotations", "license": "Apache-2.0"}
+]
