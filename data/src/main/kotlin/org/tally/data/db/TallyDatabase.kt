@@ -4,6 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import org.tally.data.db.dao.AppSettingDao
+import org.tally.data.db.dao.BackupDao
 import org.tally.data.db.dao.CiqualDao
 import org.tally.data.db.dao.FoodDao
 import org.tally.data.db.dao.GoalDao
@@ -55,6 +56,7 @@ abstract class TallyDatabase : RoomDatabase() {
     abstract fun goalDao(): GoalDao
     abstract fun offCacheDao(): OffCacheDao
     abstract fun ciqualDao(): CiqualDao
+    abstract fun backupDao(): BackupDao
 
     companion object {
         const val NAME = "tally.db"

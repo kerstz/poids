@@ -6,6 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import org.tally.data.backup.AppVersion
 import org.tally.data.di.OffUserAgent
 import org.tally.data.remote.offUserAgent
 
@@ -15,6 +16,12 @@ object AppModule {
     private const val PROJECT_URL = "https://github.com/kerstz/poids"
 
     /** User-Agent exigé par Open Food Facts : nom + version + URL du dépôt (jamais d'e-mail personnel). */
+    @Provides
+    fun provideAppVersion(@ApplicationContext context: Context): AppVersion {
+        val info = runCatching { context.packageManager.getPackageInfo(context.packageName, 0) }.getOrNull()
+        return AppVersion(info?.versionName ?: "dev", info?.longVersionCode ?: 0L)
+    }
+
     @Provides
     @OffUserAgent
     fun provideOffUserAgent(@ApplicationContext context: Context): String {
