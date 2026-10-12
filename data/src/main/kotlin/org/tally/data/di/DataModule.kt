@@ -37,6 +37,10 @@ import org.tally.data.nutrition.JournalRepositoryImpl
 import org.tally.data.nutrition.MealSlotRepositoryImpl
 import org.tally.data.nutrition.RecipeRepositoryImpl
 import org.tally.domain.nutrition.CiqualRepository
+import org.tally.domain.data.BackupRepository
+import org.tally.domain.data.CsvExporter
+import org.tally.data.export.CsvExporterImpl
+import org.tally.data.backup.BackupRepositoryImpl
 import org.tally.domain.nutrition.FoodRepository
 import org.tally.domain.nutrition.GoalRepository
 import org.tally.domain.nutrition.JournalRepository
@@ -77,6 +81,12 @@ abstract class DataBindingsModule {
 
     @Binds
     abstract fun bindFoodRepository(impl: FoodRepositoryImpl): FoodRepository
+
+    @Binds
+    abstract fun bindCsvExporter(impl: CsvExporterImpl): CsvExporter
+
+    @Binds
+    abstract fun bindBackupRepository(impl: BackupRepositoryImpl): BackupRepository
 
     @Binds
     abstract fun bindCiqualRepository(impl: CiqualRepositoryImpl): CiqualRepository
