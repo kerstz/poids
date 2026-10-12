@@ -1,6 +1,7 @@
 package org.tally.app.di
 
 import android.content.Context
+import android.os.Build
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,7 +20,12 @@ object AppModule {
     @Provides
     fun provideAppVersion(@ApplicationContext context: Context): AppVersion {
         val info = runCatching { context.packageManager.getPackageInfo(context.packageName, 0) }.getOrNull()
-        return AppVersion(info?.versionName ?: "dev", info?.longVersionCode ?: 0L)
+        val code = when {
+            info == null -> 0L
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.P -> info.longVersionCode
+            else -> @Suppress("DEPRECATION") info.versionCode.toLong()
+        }
+        return AppVersion(info?.versionName ?: "dev", code)
     }
 
     @Provides
