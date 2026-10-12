@@ -4,6 +4,7 @@ package org.tally.data.db
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import org.tally.data.db.dao.ActivityDao
 import org.tally.data.db.dao.AppSettingDao
 import org.tally.data.db.dao.BackupDao
 import org.tally.data.db.dao.CiqualDao
@@ -14,6 +15,7 @@ import org.tally.data.db.dao.MealSlotDao
 import org.tally.data.db.dao.OffCacheDao
 import org.tally.data.db.dao.MeasurementDao
 import org.tally.data.db.dao.RecipeDao
+import org.tally.data.db.entity.ActivitySessionEntity
 import org.tally.data.db.entity.AppSettingEntity
 import org.tally.data.db.entity.CiqualFoodEntity
 import org.tally.data.db.entity.FoodEntity
@@ -27,6 +29,7 @@ import org.tally.data.db.entity.OffProductCacheEntity
 import org.tally.data.db.entity.ProfileEntity
 import org.tally.data.db.entity.RecipeEntity
 import org.tally.data.db.entity.RecipeIngredientEntity
+import org.tally.data.db.entity.TrackPointEntity
 
 @Database(
     entities = [
@@ -43,8 +46,10 @@ import org.tally.data.db.entity.RecipeIngredientEntity
         AppSettingEntity::class,
         OffProductCacheEntity::class,
         CiqualFoodEntity::class,
+        ActivitySessionEntity::class,
+        TrackPointEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class TallyDatabase : RoomDatabase() {
@@ -58,11 +63,16 @@ abstract class TallyDatabase : RoomDatabase() {
     abstract fun offCacheDao(): OffCacheDao
     abstract fun ciqualDao(): CiqualDao
     abstract fun backupDao(): BackupDao
+    abstract fun activityDao(): ActivityDao
 
     companion object {
         const val NAME = "tally.db"
 
-        val ALL_MIGRATIONS = arrayOf(Migrations.MIGRATION_1_2, Migrations.MIGRATION_2_3)
+        val ALL_MIGRATIONS = arrayOf(
+            Migrations.MIGRATION_1_2,
+            Migrations.MIGRATION_2_3,
+            Migrations.MIGRATION_3_4,
+        )
 
         /** Données de référence insérées à la création : créneaux de repas et types de mesure. */
         val seedCallback = object : Callback() {

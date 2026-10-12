@@ -52,4 +52,29 @@ object Migrations {
             db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_food_ciqual_code` ON `food` (`ciqual_code`)")
         }
     }
+
+    /** v3 → v4 : suivi sportif (`activity_session`, `track_point`). Aucune donnée existante touchée. */
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `activity_session` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`uuid` TEXT NOT NULL, `type` TEXT NOT NULL, `status` TEXT NOT NULL, `source` TEXT NOT NULL, " +
+                    "`started_at` INTEGER NOT NULL, `ended_at` INTEGER, `zone_id` TEXT NOT NULL, " +
+                    "`local_date` INTEGER NOT NULL, `active_since` INTEGER, `moving_ms` INTEGER NOT NULL, " +
+                    "`distance_m` REAL NOT NULL, `elevation_gain_m` REAL NOT NULL, `elevation_loss_m` REAL NOT NULL, " +
+                    "`energy_kcal` REAL, `energy_method` TEXT, `note` TEXT, `created_at` INTEGER NOT NULL, " +
+                    "`updated_at` INTEGER NOT NULL)",
+            )
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_activity_session_uuid` ON `activity_session` (`uuid`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_activity_session_started_at` ON `activity_session` (`started_at`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_activity_session_status` ON `activity_session` (`status`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_activity_session_local_date` ON `activity_session` (`local_date`)")
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `track_point` (`session_id` INTEGER NOT NULL, `seq` INTEGER NOT NULL, " +
+                    "`segment` INTEGER NOT NULL, `time_ms` INTEGER NOT NULL, `lat` REAL NOT NULL, `lon` REAL NOT NULL, " +
+                    "`alt_m` REAL, `h_acc_m` REAL NOT NULL, `speed_mps` REAL, PRIMARY KEY(`session_id`, `seq`), " +
+                    "FOREIGN KEY(`session_id`) REFERENCES `activity_session`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE)",
+            )
+        }
+    }
 }

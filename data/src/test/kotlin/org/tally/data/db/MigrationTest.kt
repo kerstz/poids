@@ -133,9 +133,38 @@ class MigrationTest {
     }
 
     @Test
-    fun migrateAll1To3() {
-        helper.createDatabase("mig13", 1).close()
-        helper.runMigrationsAndValidate("mig13", 3, true, *TallyDatabase.ALL_MIGRATIONS).close()
+    fun migrate3To4AddsSportTablesAndKeepsData() {
+        helper.createDatabase("mig34", 3).apply {
+            food(1, "Pâtes", "3017620422003")
+            close()
+        }
+        val db = helper.runMigrationsAndValidate("mig34", 4, true, Migrations.MIGRATION_3_4)
+        db.query("SELECT name FROM food WHERE id = 1").use {
+            it.moveToFirst()
+            assertEquals("Pâtes", it.getString(0))
+        }
+        db.execSQL(
+            "INSERT INTO activity_session (id, uuid, type, status, source, started_at, zone_id, local_date, " +
+                "moving_ms, distance_m, elevation_gain_m, elevation_loss_m, created_at, updated_at) " +
+                "VALUES (1, 'u', 'WALK', 'FINISHED', 'RECORDED', 1, 'UTC', 0, 0, 0, 0, 0, 1, 1)",
+        )
+        db.execSQL(
+            "INSERT INTO track_point (session_id, seq, segment, time_ms, lat, lon, h_acc_m) " +
+                "VALUES (1, 0, 0, 1, 48.0, 2.0, 5.0)",
+        )
+        db.execSQL("PRAGMA foreign_keys = ON")
+        db.execSQL("DELETE FROM activity_session WHERE id = 1")
+        db.query("SELECT COUNT(*) FROM track_point").use {
+            it.moveToFirst()
+            assertEquals(0, it.getInt(0)) // CASCADE
+        }
+        db.close()
+    }
+
+    @Test
+    fun migrateAll1To4() {
+        helper.createDatabase("mig14", 1).close()
+        helper.runMigrationsAndValidate("mig14", 4, true, *TallyDatabase.ALL_MIGRATIONS).close()
     }
 
     /** Gel du schéma : chaque version exportée a sa migration n → n+1, et la dernière = `version` de la base. */
