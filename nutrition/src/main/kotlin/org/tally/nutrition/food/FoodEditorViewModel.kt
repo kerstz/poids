@@ -53,7 +53,8 @@ class FoodEditorViewModel @Inject constructor(
     private val saveFood: SaveFood,
 ) : ViewModel() {
 
-    private val foodId = savedStateHandle.toRoute<FoodEditorRoute>().foodId
+    private val route = savedStateHandle.toRoute<FoodEditorRoute>()
+    private val foodId = route.foodId
 
     val isEditing: Boolean get() = foodId != 0L
 
@@ -125,7 +126,7 @@ class FoodEditorViewModel @Inject constructor(
         viewModelScope.launch {
             // Repartir de l'aliment stocké : code-barres, source, détail et densité ne sont pas éditables ici.
             val base = if (isEditing) repository.get(foodId)?.food else null
-            val food = Food.edited(base, foodId, name, brand.ifBlank { null }, baseUnit, per100)
+            val food = Food.edited(base, foodId, name, brand.ifBlank { null }, baseUnit, per100, barcode = route.barcode)
             if (saveFood(food, validPortions) == null) showError = true else onDone()
         }
     }

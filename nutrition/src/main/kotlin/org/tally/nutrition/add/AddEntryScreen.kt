@@ -1,6 +1,8 @@
 package org.tally.nutrition.add
 
+import android.content.pm.PackageManager
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -14,6 +16,8 @@ import org.tally.domain.nutrition.Recipe
 fun AddEntryScreen(
     onDone: () -> Unit,
     onNewFood: () -> Unit,
+    onNewFoodWithBarcode: (String) -> Unit,
+    onScan: () -> Unit,
     onEditFood: (Long) -> Unit,
     onNewRecipe: () -> Unit,
     viewModel: AddEntryViewModel = hiltViewModel(),
@@ -23,6 +27,11 @@ fun AddEntryScreen(
     val selected by viewModel.selectedFood.collectAsStateWithLifecycle()
     val online by viewModel.online.collectAsStateWithLifecycle()
     val ciqual by viewModel.ciqualResults.collectAsStateWithLifecycle()
+    val scanOutcome by viewModel.scanOutcome.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val hasCamera = remember {
+        context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
+    }
     var tab by remember { mutableIntStateOf(0) }
     var recipeToLog by remember { mutableStateOf<Recipe?>(null) }
 
@@ -40,6 +49,13 @@ fun AddEntryScreen(
         onSelectFood = viewModel::selectFood,
         onChooseRemote = viewModel::chooseRemote,
         ciqual = ciqual,
+        showScan = hasCamera,
+        onScan = onScan,
+        scanOutcome = scanOutcome,
+        onCreateWithBarcode = { code ->
+            viewModel.dismissScanOutcome()
+            onNewFoodWithBarcode(code)
+        },
         onChooseCiqual = viewModel::chooseCiqual,
         onSelectRecipe = { recipeToLog = it },
         onNewFood = onNewFood,

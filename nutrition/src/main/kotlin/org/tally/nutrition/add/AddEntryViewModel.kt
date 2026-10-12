@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import org.tally.core.barcode.Gtin
 import org.tally.domain.nutrition.BarcodeLookup
+import org.tally.nutrition.SCAN_RESULT_KEY
 import org.tally.domain.nutrition.CiqualFood
 import org.tally.domain.nutrition.CiqualRepository
 import org.tally.domain.nutrition.ImportCiqualFood
@@ -41,6 +42,14 @@ import org.tally.domain.nutrition.RecipeRepository
 import org.tally.nutrition.AddEntryRoute
 
 /** État de la recherche Open Food Facts (onglet « En ligne »). */
+/** Issue d'un scan qui n'ouvre pas la saisie de quantité : on propose de créer l'aliment à la main. */
+sealed interface ScanOutcome {
+    val code: String
+    data class NotFound(override val code: String) : ScanOutcome
+    data class Offline(override val code: String) : ScanOutcome
+    data class RateLimited(override val code: String, val seconds: Int) : ScanOutcome
+}
+
 sealed interface OnlineState {
     data object Idle : OnlineState
     data object Loading : OnlineState
@@ -106,7 +115,21 @@ class AddEntryViewModel @Inject constructor(
      */
     private val submissions = MutableSharedFlow<String>(extraBufferCapacity = 1)
 
+    private val _scanOutcome = MutableStateFlow<ScanOutcome?>(null)
+    val scanOutcome: StateFlow<ScanOutcome?> = _scanOutcome
+
+    /** Code renvoyé par l'écran de scan (déposé dans notre `SavedStateHandle`), consommé une fois. */
+    private val scanResult = savedStateHandle.getStateFlow<String?>(SCAN_RESULT_KEY, null)
+
     init {
+        viewModelScope.launch {
+            scanResult.collect { code ->
+                if (code != null) {
+                    savedStateHandle[SCAN_RESULT_KEY] = null
+                    onScanned(code)
+                }
+            }
+        }
         viewModelScope.launch {
             submissions.debounce(SUBMIT_DEBOUNCE_MS).collectLatest { runOnlineSearch(it) }
         }
@@ -161,6 +184,26 @@ class AddEntryViewModel @Inject constructor(
     }
 
     private var importing = false
+
+    /** Chaîne local → cache → réseau → saisie manuelle (docs/AUDIT.md §3.4) ; appelée par le scan. */
+    fun onScanned(code: String) {
+        _scanOutcome.value = null
+        viewModelScope.launch {
+            when (val r = resolveBarcode(code)) {
+                is BarcodeLookup.Local -> selectFood(r.food)
+                is BarcodeLookup.Remote ->
+                    importRemoteFood(r.food)?.let { selectFood(it) } ?: run { _scanOutcome.value = ScanOutcome.Offline(code) }
+                BarcodeLookup.NotFound -> _scanOutcome.value = ScanOutcome.NotFound(code)
+                is BarcodeLookup.RateLimited ->
+                    _scanOutcome.value = ScanOutcome.RateLimited(code, secondsFor(r.retryAfterMs))
+                BarcodeLookup.Unavailable -> _scanOutcome.value = ScanOutcome.Offline(code)
+            }
+        }
+    }
+
+    fun dismissScanOutcome() {
+        _scanOutcome.value = null
+    }
 
     /** Copie l'entrée Ciqual dans `food` puis ouvre le choix de quantité. */
     fun chooseCiqual(item: CiqualFood) {

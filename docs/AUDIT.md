@@ -563,7 +563,7 @@ app_setting (k/v)
 | 3 | Poids | saisie/édition/suppression, historique, graphe Vico, `GetWeightAt`, unités kg/lb/st | 2 |
 | 4 | Journal nutrition | aliments custom + portions, créneaux, journal jour, totaux kcal/macros vs `goal`, recettes simples (ingrédients → kcal/portion), archivage, FTS local | 2 (objectifs calculés : 3) |
 | 5 | OFF en ligne | client OkHttp + UA + recherche + produit par code + cache Room TTL + copie vers `food` + attribution ODbL + purge WorkManager | 4 |
-| 6 | Scan | CameraX + zxing-cpp + validation EAN + chaîne local→cache→réseau→manuel + permission CAMERA à la demande | 5 |
+| 6 | Scan **[fait 2026-10-11, non testé sur appareil]** | CameraX + zxing-cpp + validation EAN + chaîne local→cache→réseau→manuel + permission CAMERA à la demande | 5 |
 | 7 | Données **[fait 2026-10-11]** | backup/restore ZIP JSONL versionné + export CSV (poids, journal) + tests round-trip | 2–6 (schéma stable) |
 | 8 | Durcissement release | FR/EN complet, accessibilité, R8, build reproductible, métadonnées fastlane F-Droid, gel schéma Room v1, écran À propos/licences | 1–7 |
 
@@ -663,6 +663,7 @@ app_setting (k/v)
 | M12 | CIQUAL embarqué (décision Opus 5.5) | Onglet « Ciqual » (recherche locale, ≥ 2 lettres, sans réseau), table `ciqual_food` rechargée à chaque changement de `ciqual.version`, hors sauvegarde ; v3 = `MIGRATION_2_3` | `CiqualRepositoryImpl`, `ImportCiqualFood` | Jalon 7 : exclure `ciqual_food`, lister les attributions |
 | M13 | Restauration (jalon 7, exception documentée à M7) | Chemin dédié `BackupRepositoryImpl` : conserve ids, archivés, timestamps, snapshot du journal ; mêmes règles de valeur (`FoodValidation`, `WeightValidation`, XOR journal, FK, GTIN-13, finis ≥ 0). Passe 1 lecture seule (sha256, compteurs, lignes), sauvegarde de sécurité `filesDir/backup/pre-restore.zip`, passe 2 : une transaction (`BackupDao.replaceAll`). Exclus : `off_product_cache`, `ciqual_food`, `ciqual.version` | `data/.../backup/` | Rejet = base inchangée (testé) |
 | M14 | Export CSV v1 | RFC 4180, UTF-8 sans BOM, CRLF, version dans le nom de fichier, injection de formules neutralisée sur les colonnes texte, `source` (USER/OFF/CIQUAL/RECIPE) pour l'attribution. Excel FR peut demander l'import manuel (séparateur `,`) | `CsvExporterImpl` | Limite assumée |
+| M15 | Scan (jalon 6, décision Opus 5.5) | `io.github.zxing-cpp:android:3.1.1` (Apache-2.0, .so arm64/v7a/x86/x86_64, segments alignés 16 Ko vérifiés `readelf`) + CameraX 1.6.2 ; 0 dépendance `gms/firebase/mlkit` dans `releaseRuntimeClasspath`. EAN-13, EAN-8, UPC-A ; UPC-E exclu. `ScanStabilizer` : 2 trames identiques + clé GTIN. Permission CAMERA demandée à l'ouverture de l'écran de scan, `uses-feature camera` en `required=false` (vérifié par `checkPermissions`). Issues sans quantité : saisie manuelle avec le code | `nutrition/.../scan/` | **Non vérifié sur appareil** (mise au point, torche, faible lumière) ; acceptation F-Droid du .so précompilé = hypothèse, plan B `com.google.zxing:core` derrière `BarcodeDecoder` |
 
 ## 8. Données de référence et licences (jalon 2, 2026-10-11)
 

@@ -40,6 +40,15 @@ leur licence d'origine ; elles ne sont pas relicenciées sous GPLv3.
 
 ---
 
+## Bibliothèques embarquées notables
+
+| Bibliothèque | Licence | Usage |
+|---|---|---|
+| zxing-cpp (`io.github.zxing-cpp:android`) | Apache-2.0 | Lecture des codes-barres (natif, hors ligne) |
+| AndroidX CameraX | Apache-2.0 | Aperçu et analyse caméra |
+
+Aucune bibliothèque Google Play Services, Firebase ou ML Kit.
+
 ## Sauvegardes et exports
 
 Une sauvegarde ZIP (`manifest.json`) contient, si l'utilisateur a utilisé ces sources, les attributions

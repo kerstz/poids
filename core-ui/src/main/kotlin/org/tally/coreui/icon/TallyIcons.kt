@@ -11,4 +11,5 @@ object TallyIcons {
     @DrawableRes val chevronRight: Int = R.drawable.ic_chevron_right
     @DrawableRes val restaurant: Int = R.drawable.ic_restaurant
     @DrawableRes val showChart: Int = R.drawable.ic_show_chart
+    @DrawableRes val scan: Int = R.drawable.ic_scan
 }
