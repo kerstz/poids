@@ -40,4 +40,9 @@ leur licence d'origine ; elles ne sont pas relicenciées sous GPLv3.
 
 ---
 
+## Sauvegardes et exports
+
+Une sauvegarde ZIP (`manifest.json`) contient, si l'utilisateur a utilisé ces sources, les attributions
+Open Food Facts (ODbL-1.0) et Ciqual (Licence Ouverte 1.0). Les exports CSV portent une colonne `source`.
+
 Ce fichier n'est pas un avis juridique ; les points ouverts sont listés dans `docs/AUDIT.md` §2.5 et §8.

@@ -15,4 +15,24 @@
     <string name="settings_off_hint">Seuls le code-barres ou les mots recherchés sont envoyés. Rien d\'autre ne quitte l\'appareil.</string>
     <string name="settings_sources">Sources de données</string>
     <string name="settings_off_attribution">Données alimentaires : contributeurs d\'Open Food Facts, Open Database License (ODbL) 1.0. https://world.openfoodfacts.org</string>
+    <string name="settings_data">Données</string>
+    <string name="data_busy">En cours…</string>
+    <string name="data_backup">Sauvegarder</string>
+    <string name="data_backup_hint">Enregistrer toutes vos données dans un fichier ZIP</string>
+    <string name="data_restore">Restaurer</string>
+    <string name="data_restore_hint">Remplacer toutes les données par une sauvegarde (annulable)</string>
+    <string name="data_export_weight">Exporter le poids</string>
+    <string name="data_export_journal">Exporter le journal alimentaire</string>
+    <string name="data_backup_saved">Sauvegarde enregistrée (%1$d lignes).</string>
+    <string name="data_exported">%1$d lignes exportées.</string>
+    <string name="data_restored">Données restaurées (%1$d lignes).</string>
+    <string name="data_undo">Annuler</string>
+    <string name="data_undone">Données précédentes rétablies.</string>
+    <string name="data_err_io">Impossible de lire ou d\'écrire le fichier.</string>
+    <string name="data_err_not_backup">Ce fichier n\'est pas une sauvegarde Tally.</string>
+    <string name="data_err_future">Cette sauvegarde vient d\'une version plus récente de Tally.</string>
+    <string name="data_err_corrupt">La sauvegarde est endommagée. Rien n\'a été modifié.</string>
+    <string name="data_err_invalid">La sauvegarde contient des données invalides. Rien n\'a été modifié.</string>
+    <string name="data_err_large">La sauvegarde est trop volumineuse.</string>
+    <string name="data_err_nothing">Rien à annuler.</string>
 </resources>
