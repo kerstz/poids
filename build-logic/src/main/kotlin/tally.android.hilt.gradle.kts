@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 plugins {
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")

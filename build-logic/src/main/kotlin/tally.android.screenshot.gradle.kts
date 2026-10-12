@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Tests de capture Roborazzi (bibliothèque seule, sans plugin Gradle Roborazzi).
 // Écrit les PNG en mode record (défaut) ; -Proborazzi.mode=verify compare aux références.
 plugins {

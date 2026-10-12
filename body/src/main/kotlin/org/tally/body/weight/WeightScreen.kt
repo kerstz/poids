@@ -1,6 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.body.weight
 
-import android.content.Context
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -10,7 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -23,13 +23,13 @@ fun WeightScreen(viewModel: WeightViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var editor by remember { mutableStateOf<EditorTarget?>(null) }
     val snackbar = remember { SnackbarHostState() }
-    val context: Context = LocalContext.current
+    val resources = LocalResources.current
     val undoLabel = stringResource(R.string.weight_undo)
 
     LaunchedEffect(viewModel) {
         viewModel.deleted.collect { entry ->
             val result = snackbar.showSnackbar(
-                message = context.getString(R.string.weight_deleted),
+                message = resources.getString(R.string.weight_deleted),
                 actionLabel = undoLabel,
                 duration = SnackbarDuration.Long,
             )

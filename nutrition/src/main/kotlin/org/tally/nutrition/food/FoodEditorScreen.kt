@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.nutrition.food
 
 import androidx.compose.foundation.layout.Arrangement

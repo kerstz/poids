@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.domain.body
 
 /** Pesée. Valeur en kg (SI) ; instants en epoch ms UTC + zone de saisie. */

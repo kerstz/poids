@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 plugins {
     id("com.android.application")
     id("tally.android.compose")
@@ -16,5 +17,15 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    lint {
+        warningsAsErrors = true
+        abortOnError = true
+    }
+
+    // Langue par app (Android 13+) : locales.xml généré depuis res/values-*.
+    androidResources {
+        generateLocaleConfig = true
     }
 }

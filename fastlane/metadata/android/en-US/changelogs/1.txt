@@ -1,0 +1,1 @@
+First release: food journal, weight, barcode scan, offline Ciqual table, ZIP backup and CSV export.

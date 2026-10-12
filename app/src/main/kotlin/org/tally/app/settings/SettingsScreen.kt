@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.app.settings
 
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -82,6 +84,8 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(top = 8.dp),
         )
+
+        AboutSection()
     }
 }
 
@@ -144,9 +148,9 @@ private fun DataSection(viewModel: SettingsViewModel) {
     )
     val message = when (val s = status) {
         DataStatus.Idle, DataStatus.Busy -> null
-        is DataStatus.BackupSaved -> stringResource(R.string.data_backup_saved, s.rows)
-        is DataStatus.Exported -> stringResource(R.string.data_exported, s.rows)
-        is DataStatus.Restored -> stringResource(R.string.data_restored, s.rows)
+        is DataStatus.BackupSaved -> pluralStringResource(R.plurals.data_backup_saved, s.rows, s.rows)
+        is DataStatus.Exported -> pluralStringResource(R.plurals.data_exported, s.rows, s.rows)
+        is DataStatus.Restored -> pluralStringResource(R.plurals.data_restored, s.rows, s.rows)
         DataStatus.Undone -> stringResource(R.string.data_undone)
         is DataStatus.Failed -> stringResource(
             when (s.error) {

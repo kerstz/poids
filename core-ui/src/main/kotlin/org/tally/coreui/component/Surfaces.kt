@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.coreui.component
 
 import androidx.compose.foundation.background

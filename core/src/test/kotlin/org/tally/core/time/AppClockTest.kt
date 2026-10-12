@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.core.time
 
 import org.junit.Assert.assertTrue

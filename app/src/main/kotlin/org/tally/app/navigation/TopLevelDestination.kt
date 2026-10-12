@@ -1,16 +1,13 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.app.navigation
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.Serializable
 import org.tally.activity.ActivityRoute
 import org.tally.app.R
 import org.tally.body.BodyRoute
+import org.tally.coreui.icon.TallyIcons
 import org.tally.nutrition.NutritionRoute
 
 @Serializable
@@ -18,11 +15,11 @@ data object SettingsRoute
 
 enum class TopLevelDestination(
     val route: Any,
-    val icon: ImageVector,
+    @DrawableRes val icon: Int,
     @StringRes val labelRes: Int,
 ) {
-    JOURNAL(NutritionRoute, Icons.Filled.DateRange, R.string.nav_journal),
-    BODY(BodyRoute, Icons.Filled.Person, R.string.nav_body),
-    ACTIVITY(ActivityRoute, Icons.Filled.LocationOn, R.string.nav_activity),
-    SETTINGS(SettingsRoute, Icons.Filled.Settings, R.string.nav_settings),
+    JOURNAL(NutritionRoute, TallyIcons.navJournal, R.string.nav_journal),
+    BODY(BodyRoute, TallyIcons.navBody, R.string.nav_body),
+    ACTIVITY(ActivityRoute, TallyIcons.navActivity, R.string.nav_activity),
+    SETTINGS(SettingsRoute, TallyIcons.navSettings, R.string.nav_settings),
 }

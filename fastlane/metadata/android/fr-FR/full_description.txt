@@ -1,0 +1,10 @@
+Tally est un journal libre, pensé hors ligne, de ce que vous mangez et de votre poids.
+
+• Journal alimentaire : repas, aliments avec portions, recettes simples, totaux du jour face à votre objectif calorique.
+• Poids : historique et graphique, kg / lb / st.
+• Scan de code-barres : la caméra lit les codes EAN/UPC sur l'appareil. Les produits viennent d'abord de votre liste, puis d'Open Food Facts (seuls le code-barres ou les mots recherchés sont envoyés, désactivable).
+• Table française Ciqual intégrée, consultable hors ligne.
+• Vos données restent sur votre appareil. Sauvegarde en fichier ZIP et restauration à tout moment ; export du poids et du journal en CSV.
+• Sans publicité, sans traceur, sans compte, sans services Google.
+
+Données : contributeurs Open Food Facts (ODbL), Anses Ciqual 2020 (Licence Ouverte). Logiciel libre sous GNU GPL v3 ou ultérieure.

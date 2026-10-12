@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package org.tally.core.barcode
 
 /** Validation GTIN (EAN-8, UPC-A 12, EAN-13, GTIN-14) : chiffres uniquement + clé de contrôle GS1. */

@@ -23,9 +23,18 @@
     <string name="data_restore_hint">Replace all data with a backup (you can undo)</string>
     <string name="data_export_weight">Export weight</string>
     <string name="data_export_journal">Export food journal</string>
-    <string name="data_backup_saved">Backup saved (%1$d rows).</string>
-    <string name="data_exported">Exported %1$d rows.</string>
-    <string name="data_restored">Data restored (%1$d rows).</string>
+    <plurals name="data_backup_saved">
+        <item quantity="one">Backup saved (%1$d row).</item>
+        <item quantity="other">Backup saved (%1$d rows).</item>
+    </plurals>
+    <plurals name="data_exported">
+        <item quantity="one">Exported %1$d row.</item>
+        <item quantity="other">Exported %1$d rows.</item>
+    </plurals>
+    <plurals name="data_restored">
+        <item quantity="one">Data restored (%1$d row).</item>
+        <item quantity="other">Data restored (%1$d rows).</item>
+    </plurals>
     <string name="data_undo">Undo</string>
     <string name="data_undone">Previous data restored.</string>
     <string name="data_err_io">Could not read or write the file.</string>
@@ -35,4 +44,11 @@
     <string name="data_err_invalid">The backup contains invalid data. Nothing was changed.</string>
     <string name="data_err_large">The backup is too large.</string>
     <string name="data_err_nothing">Nothing to undo.</string>
+    <string name="about_title">About</string>
+    <string name="about_version">Tally %1$s</string>
+    <string name="about_license">Free software, GNU GPL v3 or later. No ads, no tracking, no account.</string>
+    <string name="about_source_code">Source code and license</string>
+    <string name="about_data_ciqual">Food composition: Anses – Ciqual 2020 table, Open Licence (Etalab). Product data: Open Food Facts (ODbL).</string>
+    <string name="about_show_libraries">Show libraries</string>
+    <string name="about_hide_libraries">Hide libraries</string>
 </resources>
