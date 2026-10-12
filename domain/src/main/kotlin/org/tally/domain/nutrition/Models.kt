@@ -93,7 +93,9 @@ fun Food.Companion.edited(
     brand: String?,
     baseUnit: BaseUnit,
     per100: Macros,
-): Food = (base ?: Food(id = id, name = name, per100 = per100))
+    /** Code-barres d'un aliment neuf (scan sans résultat) ; ignoré si [base] existe. */
+    barcode: String? = null,
+): Food = (base ?: Food(id = id, name = name, per100 = per100, barcode = barcode))
     .copy(id = id, name = name, brand = brand, baseUnit = baseUnit, per100 = per100)
 
 /** Entrée de la table de référence Ciqual (Anses), valeurs pour 100 g. */

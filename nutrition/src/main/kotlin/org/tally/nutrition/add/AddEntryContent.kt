@@ -12,6 +12,8 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -80,6 +82,10 @@ internal fun AddEntryContent(
     onAddRecipe: (Recipe, servings: Double) -> Unit,
     ciqual: List<CiqualFood> = emptyList(),
     onChooseCiqual: (CiqualFood) -> Unit = {},
+    showScan: Boolean = false,
+    onScan: () -> Unit = {},
+    scanOutcome: ScanOutcome? = null,
+    onCreateWithBarcode: (String) -> Unit = {},
 ) {
     val spacing = TallyTheme.spacing
     Column(Modifier.fillMaxSize()) {
@@ -88,6 +94,18 @@ internal fun AddEntryContent(
             onValueChange = onQueryChange,
             label = { Text(stringResource(R.string.add_search)) },
             singleLine = true,
+            trailingIcon = if (showScan) {
+                {
+                    IconButton(onClick = onScan) {
+                        Icon(
+                            painter = painterResource(TallyIcons.scan),
+                            contentDescription = stringResource(R.string.add_scan),
+                        )
+                    }
+                }
+            } else {
+                null
+            },
             shape = MaterialTheme.shapes.small,
             keyboardOptions = KeyboardOptions(imeAction = if (tab == TAB_ONLINE) ImeAction.Search else ImeAction.Default),
             keyboardActions = KeyboardActions(onSearch = { onSubmitOnline() }),
@@ -109,6 +127,19 @@ internal fun AddEntryContent(
                         label = { Text(stringResource(label)) },
                     )
                 }
+        }
+        scanOutcome?.let { outcome ->
+            val message = when (outcome) {
+                is ScanOutcome.NotFound -> stringResource(R.string.scan_not_found, outcome.code)
+                is ScanOutcome.Offline -> stringResource(R.string.scan_offline, outcome.code)
+                is ScanOutcome.RateLimited -> stringResource(R.string.scan_rate_limited, outcome.seconds)
+            }
+            ErrorBanner(
+                message = message,
+                retryLabel = stringResource(R.string.scan_create_manual),
+                onRetry = { onCreateWithBarcode(outcome.code) },
+                modifier = Modifier.padding(horizontal = spacing.gutter, vertical = spacing.s),
+            )
         }
         if (tab == TAB_ONLINE && online == OnlineState.Loading) {
             val loading = stringResource(R.string.online_loading)

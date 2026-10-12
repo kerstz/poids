@@ -2,4 +2,5 @@
 # Une permission par ligne. ${applicationId} = org.tally.app
 # Toute permission absente de cette liste fait échouer :app:checkPermissions.
 android.permission.INTERNET
+android.permission.CAMERA
 ${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION

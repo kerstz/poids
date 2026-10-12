@@ -64,6 +64,14 @@ val checkPermissions = tasks.register("checkPermissions") {
             .findAll(manifest.get().asFile.readText())
             .map { it.groupValues[1] }
             .toSet()
+        val text = manifest.get().asFile.readText()
+        if ("android.permission.CAMERA" in used) {
+            Regex("""<uses-feature[^>]*android:name="(android\.hardware\.camera[^"]*)"[^>]*>""").findAll(text).forEach { m ->
+                if (!m.value.contains("""android:required="false"""")) {
+                    throw GradleException("uses-feature ${m.groupValues[1]} doit être required=\"false\" (app installable sans caméra)")
+                }
+            }
+        }
         val extra = used - allowed
         if (extra.isNotEmpty()) {
             throw GradleException("Permissions non autorisées dans le manifeste release: $extra")
