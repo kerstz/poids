@@ -24,7 +24,17 @@ import org.tally.core.time.AppClock
 import org.tally.core.time.SystemAppClock
 import org.tally.data.db.TallyDatabase
 import org.tally.data.body.WeightRepositoryImpl
+import org.tally.data.activity.ActivityRepositoryImpl
+import org.tally.data.db.dao.ActivityDao
 import org.tally.data.db.dao.AppSettingDao
+import org.tally.domain.activity.ActivityRepository
+import org.tally.domain.activity.DeleteSession
+import org.tally.domain.activity.FinishSession
+import org.tally.domain.activity.PauseSession
+import org.tally.domain.activity.RecomputeMissingEnergy
+import org.tally.domain.activity.RestoreSession
+import org.tally.domain.activity.ResumeSession
+import org.tally.domain.activity.StartSession
 import org.tally.data.db.dao.FoodDao
 import org.tally.data.db.dao.GoalDao
 import org.tally.data.db.dao.JournalDao
@@ -103,6 +113,9 @@ abstract class DataBindingsModule {
 
     @Binds
     abstract fun bindGoalRepository(impl: GoalRepositoryImpl): GoalRepository
+
+    @Binds
+    abstract fun bindActivityRepository(impl: ActivityRepositoryImpl): ActivityRepository
 }
 
 @Module
@@ -187,6 +200,38 @@ object DataProvidersModule {
 
     @Provides
     fun provideGetWeightAt(repository: WeightRepository): GetWeightAt = GetWeightAt(repository)
+
+    @Provides
+    fun provideActivityDao(db: TallyDatabase): ActivityDao = db.activityDao()
+
+    @Provides
+    fun provideStartSession(repository: ActivityRepository, clock: AppClock): StartSession =
+        StartSession(repository, clock)
+
+    @Provides
+    fun providePauseSession(repository: ActivityRepository, clock: AppClock): PauseSession =
+        PauseSession(repository, clock)
+
+    @Provides
+    fun provideResumeSession(repository: ActivityRepository, clock: AppClock): ResumeSession =
+        ResumeSession(repository, clock)
+
+    @Provides
+    fun provideFinishSession(repository: ActivityRepository, weight: GetWeightAt, clock: AppClock): FinishSession =
+        FinishSession(repository, weight, clock)
+
+    @Provides
+    fun provideDeleteSession(repository: ActivityRepository): DeleteSession = DeleteSession(repository)
+
+    @Provides
+    fun provideRestoreSession(repository: ActivityRepository): RestoreSession = RestoreSession(repository)
+
+    @Provides
+    fun provideRecomputeMissingEnergy(
+        repository: ActivityRepository,
+        weight: GetWeightAt,
+        clock: AppClock,
+    ): RecomputeMissingEnergy = RecomputeMissingEnergy(repository, weight, clock)
 
     @Provides
     @Singleton
