@@ -6,3 +6,7 @@ plugins {
 android {
     namespace = "org.tally.body"
 }
+
+dependencies {
+    testImplementation(libs.kotlinx.coroutines.test)
+}

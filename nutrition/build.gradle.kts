@@ -13,4 +13,5 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.compose)
     implementation(libs.zxing.cpp)
+    testImplementation(libs.kotlinx.coroutines.test)
 }
