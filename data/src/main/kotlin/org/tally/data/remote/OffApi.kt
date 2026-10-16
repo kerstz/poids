@@ -132,6 +132,9 @@ private fun JsonObject.str(key: String): String? = when (val e = this[key]) {
 private fun JsonObject.num(key: String): Double? =
     (this[key] as? JsonPrimitive)?.doubleOrNull?.takeIf { it.isFinite() }
 
+/** Valeur nutritionnelle OFF : finie ET positive ou nulle (une valeur négative est une donnée corrompue → absente). */
+private fun JsonObject.numNonNeg(key: String): Double? = num(key)?.takeIf { it >= 0.0 }
+
 private fun JsonElement.asObject(): JsonObject? = this as? JsonObject
 
 /** Produit OFF → modèle. Null si nom ou énergie manquants (inutilisable dans un journal). */
@@ -139,8 +142,8 @@ internal fun JsonObject.toRemoteFood(fallbackCode: String? = null): RemoteFood? 
     val code = str("code")?.takeIf { it.isNotBlank() } ?: fallbackCode ?: return null
     val name = str("product_name")?.trim()?.takeIf { it.isNotEmpty() } ?: return null
     val nutriments = this["nutriments"]?.asObject() ?: return null
-    val kcal = nutriments.num("energy-kcal_100g")
-        ?: nutriments.num("energy_100g")?.div(KJ_PER_KCAL)
+    val kcal = nutriments.numNonNeg("energy-kcal_100g")
+        ?: nutriments.numNonNeg("energy_100g")?.div(KJ_PER_KCAL)
         ?: return null
     val brand = when (val raw = this["brands"]) {
         is JsonArray -> raw.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.firstOrNull()
@@ -153,15 +156,15 @@ internal fun JsonObject.toRemoteFood(fallbackCode: String? = null): RemoteFood? 
         brand = brand,
         per100 = Macros(
             energyKcal = kcal,
-            proteinG = nutriments.num("proteins_100g") ?: 0.0,
-            carbsG = nutriments.num("carbohydrates_100g") ?: 0.0,
-            fatG = nutriments.num("fat_100g") ?: 0.0,
+            proteinG = nutriments.numNonNeg("proteins_100g") ?: 0.0,
+            carbsG = nutriments.numNonNeg("carbohydrates_100g") ?: 0.0,
+            fatG = nutriments.numNonNeg("fat_100g") ?: 0.0,
         ),
         per100Detail = NutrientDetail(
-            sugarsG = nutriments.num("sugars_100g"),
-            satFatG = nutriments.num("saturated-fat_100g"),
-            fiberG = nutriments.num("fiber_100g"),
-            saltG = nutriments.num("salt_100g"),
+            sugarsG = nutriments.numNonNeg("sugars_100g"),
+            satFatG = nutriments.numNonNeg("saturated-fat_100g"),
+            fiberG = nutriments.numNonNeg("fiber_100g"),
+            saltG = nutriments.numNonNeg("salt_100g"),
         ),
         servingQuantityG = num("serving_quantity")?.takeIf { it > 0 },
         lastModifiedEpochSec = num("last_modified_t")?.toLong(),
