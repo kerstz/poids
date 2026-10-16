@@ -23,4 +23,6 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
-      - run: ./gradlew checkArchitecture :app:checkPermissions testDebugUnitTest :app:lintRelease assembleDebug
+      # :core:test et :domain:test : modules JVM purs, non couverts par testDebugUnitTest.
+      # roborazzi.mode=verify : les captures de référence sont comparées, jamais réécrites en CI.
+      - run: ./gradlew checkArchitecture :app:checkPermissions :core:test :domain:test testDebugUnitTest :app:lintRelease assembleDebug -Proborazzi.mode=verify
