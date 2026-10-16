@@ -50,6 +50,8 @@ import org.tally.data.nutrition.RecipeRepositoryImpl
 import org.tally.domain.nutrition.CiqualRepository
 import org.tally.domain.data.BackupRepository
 import org.tally.domain.data.CsvExporter
+import org.tally.domain.data.DataWipeRepository
+import org.tally.data.wipe.DataWipeRepositoryImpl
 import org.tally.data.export.CsvExporterImpl
 import org.tally.data.backup.BackupRepositoryImpl
 import org.tally.domain.nutrition.FoodRepository
@@ -98,6 +100,9 @@ abstract class DataBindingsModule {
 
     @Binds
     abstract fun bindBackupRepository(impl: BackupRepositoryImpl): BackupRepository
+
+    @Binds
+    abstract fun bindDataWipeRepository(impl: DataWipeRepositoryImpl): DataWipeRepository
 
     @Binds
     abstract fun bindCiqualRepository(impl: CiqualRepositoryImpl): CiqualRepository
