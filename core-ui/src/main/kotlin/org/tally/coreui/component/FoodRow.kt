@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import org.tally.coreui.icon.TallyIcons
@@ -40,7 +41,8 @@ fun FoodRow(
     onClick: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
     deleteLabel: String = "",
-) = DataRow(name, detail, kcal, modifier, secondary, onClick, onDelete, deleteLabel)
+    onClickLabel: String? = null,
+) = DataRow(name, detail, kcal, modifier, secondary, onClick, onDelete, deleteLabel, onClickLabel)
 
 /**
  * Ligne de données : titre, détail, valeur à droite. Un seul nœud TalkBack.
@@ -56,13 +58,14 @@ fun DataRow(
     onClick: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
     deleteLabel: String = "",
+    onClickLabel: String? = null,
 ) {
     val content: @Composable () -> Unit = {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(TallyTheme.colors.background)
-                .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+                .then(if (onClick != null) Modifier.clickable(onClickLabel = onClickLabel, role = Role.Button, onClick = onClick) else Modifier)
                 .heightIn(min = TallyTheme.dimens.rowMinHeight)
                 .padding(horizontal = TallyTheme.spacing.gutter, vertical = TallyTheme.spacing.s),
             verticalAlignment = Alignment.CenterVertically,
