@@ -20,6 +20,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import org.tally.activity.activityGraph
 import org.tally.body.bodyGraph
+import org.tally.app.settings.PrivacyScreen
 import org.tally.app.settings.SettingsScreen
 import org.tally.nutrition.NutritionRoute
 import org.tally.nutrition.nutritionGraph
@@ -33,7 +34,7 @@ fun TallyApp() {
     Scaffold(
         bottomBar = {
             NavigationBar {
-                TopLevelDestination.entries.forEach { destination ->
+                TopLevelDestination.visible.forEach { destination ->
                     NavigationBarItem(
                         selected = currentDestination?.hasRoute(destination.route::class) == true,
                         onClick = {
@@ -58,7 +59,8 @@ fun TallyApp() {
             nutritionGraph(navController)
             bodyGraph()
             activityGraph()
-            composable<SettingsRoute> { SettingsScreen() }
+            composable<SettingsRoute> { SettingsScreen(onOpenPrivacy = { navController.navigate(PrivacyRoute) }) }
+            composable<PrivacyRoute> { PrivacyScreen() }
         }
     }
 }

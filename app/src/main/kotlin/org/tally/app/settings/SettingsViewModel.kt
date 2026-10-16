@@ -9,9 +9,11 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.IOException
 import java.io.OutputStream
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.tally.domain.data.BackupRepository
 import org.tally.domain.data.CsvExporter
+import org.tally.domain.data.DataWipeRepository
 import org.tally.domain.data.RestoreError
 import org.tally.domain.data.RestoreResult
 import androidx.lifecycle.viewModelScope
@@ -36,6 +38,8 @@ sealed interface DataStatus {
     data class Exported(val rows: Int) : DataStatus
     data class Restored(val rows: Int) : DataStatus
     data object Undone : DataStatus
+    data object Wiped : DataStatus
+    data object WipeFailed : DataStatus
     data class Failed(val error: RestoreError?) : DataStatus
 }
 
@@ -44,6 +48,7 @@ class SettingsViewModel @Inject constructor(
     private val repository: SettingsRepository,
     private val backup: BackupRepository,
     private val csv: CsvExporter,
+    private val wiper: DataWipeRepository,
     @ApplicationContext context: Context,
 ) : ViewModel() {
     private val resolver: ContentResolver = context.contentResolver
@@ -67,6 +72,11 @@ class SettingsViewModel @Inject constructor(
                 }
             } catch (_: IOException) {
                 DataStatus.Failed(RestoreError.IO)
+            } catch (_: SecurityException) {
+                // Permission d'URI révoquée entre la sélection et la lecture.
+                DataStatus.Failed(RestoreError.IO)
+            } catch (_: IllegalArgumentException) {
+                DataStatus.Failed(RestoreError.IO)
             }
         }
     }
@@ -75,10 +85,27 @@ class SettingsViewModel @Inject constructor(
         if (_data.value == DataStatus.Busy) return
         _data.value = DataStatus.Busy
         viewModelScope.launch {
-            _data.value = when (val r = backup.undoLastRestore()) {
-                is RestoreResult.Success -> DataStatus.Undone
-                is RestoreResult.Rejected -> DataStatus.Failed(r.error)
-            }
+            _data.value = runCatching { backup.undoLastRestore() }.fold(
+                onSuccess = { r ->
+                    when (r) {
+                        is RestoreResult.Success -> DataStatus.Undone
+                        is RestoreResult.Rejected -> DataStatus.Failed(r.error)
+                    }
+                },
+                onFailure = { if (it is CancellationException) throw it else DataStatus.Failed(RestoreError.IO) },
+            )
+        }
+    }
+
+    /** Effacement complet (RGPD art. 17). La confirmation explicite est demandée par l'écran. */
+    fun wipe() {
+        if (_data.value == DataStatus.Busy) return
+        _data.value = DataStatus.Busy
+        viewModelScope.launch {
+            _data.value = runCatching { wiper.wipeAll() }.fold(
+                onSuccess = { DataStatus.Wiped },
+                onFailure = { if (it is CancellationException) throw it else DataStatus.WipeFailed },
+            )
         }
     }
 
@@ -89,7 +116,8 @@ class SettingsViewModel @Inject constructor(
             _data.value = try {
                 val out = resolver.openOutputStream(uri, "wt") ?: throw IOException("flux indisponible")
                 out.use { block(it) }
-            } catch (_: IOException) {
+            } catch (e: Exception) {
+                if (e !is IOException && e !is SecurityException && e !is IllegalArgumentException) throw e
                 // Évite de laisser un fichier à moitié écrit.
                 runCatching { DocumentsContract.deleteDocument(resolver, uri) }
                 DataStatus.Failed(null)
