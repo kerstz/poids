@@ -13,6 +13,15 @@ import org.tally.nutrition.NutritionRoute
 @Serializable
 data object SettingsRoute
 
+@Serializable
+data object PrivacyRoute
+
+/**
+ * Onglet Activité masqué tant que l'écran n'est qu'un placeholder.
+ * À réactiver (true) à la livraison de S3 (docs/SPORT-ARCHI.md). La route reste enregistrée dans le NavHost.
+ */
+const val SPORT_ENABLED = false
+
 enum class TopLevelDestination(
     val route: Any,
     @DrawableRes val icon: Int,
@@ -22,4 +31,11 @@ enum class TopLevelDestination(
     BODY(BodyRoute, TallyIcons.navBody, R.string.nav_body),
     ACTIVITY(ActivityRoute, TallyIcons.navActivity, R.string.nav_activity),
     SETTINGS(SettingsRoute, TallyIcons.navSettings, R.string.nav_settings),
+    ;
+
+    companion object {
+        /** Destinations affichées dans la barre de navigation. */
+        val visible: List<TopLevelDestination>
+            get() = entries.filter { it != ACTIVITY || SPORT_ENABLED }
+    }
 }

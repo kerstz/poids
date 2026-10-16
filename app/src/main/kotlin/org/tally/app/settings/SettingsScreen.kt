@@ -28,6 +28,16 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
@@ -40,7 +50,7 @@ import org.tally.core.unit.LengthUnit
 import org.tally.core.unit.MassUnit
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(onOpenPrivacy: () -> Unit = {}, viewModel: SettingsViewModel = hiltViewModel()) {
     val prefs by viewModel.unitPreferences.collectAsStateWithLifecycle()
     val offEnabled by viewModel.offEnabled.collectAsStateWithLifecycle()
 
@@ -50,22 +60,30 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
             .padding(16.dp),
     ) {
         Text(stringResource(R.string.settings_units), style = MaterialTheme.typography.titleLarge)
-        UnitChoice(R.string.settings_unit_mass, MassUnit.entries, prefs.mass, viewModel::setMass)
-        UnitChoice(R.string.settings_unit_length, LengthUnit.entries, prefs.length, viewModel::setLength)
-        UnitChoice(R.string.settings_unit_distance, DistanceUnit.entries, prefs.distance, viewModel::setDistance)
-        UnitChoice(R.string.settings_unit_energy, EnergyUnit.entries, prefs.energy, viewModel::setEnergy)
+        UnitChoice(R.string.settings_unit_mass, MassUnit.entries, prefs.mass, ::massLabel, viewModel::setMass)
+        UnitChoice(R.string.settings_unit_length, LengthUnit.entries, prefs.length, ::lengthLabel, viewModel::setLength)
+        UnitChoice(R.string.settings_unit_distance, DistanceUnit.entries, prefs.distance, ::distanceLabel, viewModel::setDistance)
+        UnitChoice(R.string.settings_unit_energy, EnergyUnit.entries, prefs.energy, ::energyLabel, viewModel::setEnergy)
 
         Text(
             stringResource(R.string.settings_online),
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(top = 24.dp),
         )
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+        // Toute la ligne est l'élément interactif (TalkBack : un seul interrupteur, cible ≥ 48 dp).
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .padding(top = 8.dp)
+                .toggleable(value = offEnabled, role = Role.Switch, onValueChange = viewModel::setOffEnabled),
+        ) {
             Text(
                 stringResource(R.string.settings_off_enabled),
                 modifier = Modifier.weight(1f),
             )
-            Switch(checked = offEnabled, onCheckedChange = viewModel::setOffEnabled)
+            Switch(checked = offEnabled, onCheckedChange = null)
         }
         Text(
             stringResource(R.string.settings_off_hint),
@@ -73,6 +91,10 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         )
 
         DataSection(viewModel)
+
+        TextButton(onClick = onOpenPrivacy, modifier = Modifier.padding(top = 24.dp)) {
+            Text(stringResource(R.string.settings_privacy_open))
+        }
 
         Text(
             stringResource(R.string.settings_sources),
@@ -146,12 +168,30 @@ private fun DataSection(viewModel: SettingsViewModel) {
         value = "",
         onClick = if (busy) null else ({ saveJournal.launch("tally-journal-v1-$today.csv") }),
     )
+    var confirmWipe by remember { mutableStateOf(false) }
+    DataRow(
+        title = stringResource(R.string.data_wipe),
+        detail = stringResource(R.string.data_wipe_hint),
+        value = "",
+        onClick = if (busy) null else ({ confirmWipe = true }),
+    )
+    if (confirmWipe) {
+        WipeConfirmSheet(
+            onConfirm = {
+                confirmWipe = false
+                viewModel.wipe()
+            },
+            onDismiss = { confirmWipe = false },
+        )
+    }
     val message = when (val s = status) {
         DataStatus.Idle, DataStatus.Busy -> null
         is DataStatus.BackupSaved -> pluralStringResource(R.plurals.data_backup_saved, s.rows, s.rows)
         is DataStatus.Exported -> pluralStringResource(R.plurals.data_exported, s.rows, s.rows)
         is DataStatus.Restored -> pluralStringResource(R.plurals.data_restored, s.rows, s.rows)
         DataStatus.Undone -> stringResource(R.string.data_undone)
+        DataStatus.Wiped -> stringResource(R.string.data_wiped)
+        DataStatus.WipeFailed -> stringResource(R.string.data_err_wipe)
         is DataStatus.Failed -> stringResource(
             when (s.error) {
                 RestoreError.FUTURE_FORMAT -> R.string.data_err_future
@@ -183,6 +223,7 @@ private fun <E : Enum<E>> UnitChoice(
     labelRes: Int,
     options: List<E>,
     selected: E,
+    labelOf: (E) -> Int,
     onSelect: (E) -> Unit,
 ) {
     Text(
@@ -197,7 +238,58 @@ private fun <E : Enum<E>> UnitChoice(
                 onClick = { onSelect(option) },
                 shape = SegmentedButtonDefaults.itemShape(index, options.size),
             ) {
-                Text(option.name.lowercase())
+                Text(stringResource(labelOf(option)))
+            }
+        }
+    }
+}
+
+private fun massLabel(u: MassUnit) = when (u) {
+    MassUnit.KG -> R.string.unit_kg
+    MassUnit.LB -> R.string.unit_lb
+    MassUnit.ST -> R.string.unit_st
+}
+
+private fun lengthLabel(u: LengthUnit) = when (u) {
+    LengthUnit.CM -> R.string.unit_cm
+    LengthUnit.IN -> R.string.unit_in
+}
+
+private fun distanceLabel(u: DistanceUnit) = when (u) {
+    DistanceUnit.KM -> R.string.unit_km
+    DistanceUnit.MI -> R.string.unit_mi
+}
+
+private fun energyLabel(u: EnergyUnit) = when (u) {
+    EnergyUnit.KCAL -> R.string.unit_kcal
+    EnergyUnit.KJ -> R.string.unit_kj
+}
+
+/**
+ * Confirmation d'effacement en bottom sheet (pas d'AlertDialog, cf. docs/UI.md).
+ * Exception à la règle « jamais de confirmation » : l'effacement est irréversible (pas d'Annuler possible).
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WipeConfirmSheet(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 24.dp)) {
+            Text(stringResource(R.string.data_wipe_confirm_title), style = MaterialTheme.typography.titleLarge)
+            Text(
+                stringResource(R.string.data_wipe_confirm_body),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError,
+                ),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(top = 16.dp),
+            ) { Text(stringResource(R.string.data_wipe_confirm)) }
+            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.data_wipe_cancel))
             }
         }
     }
