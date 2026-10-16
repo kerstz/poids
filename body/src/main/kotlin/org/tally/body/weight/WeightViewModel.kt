@@ -6,11 +6,12 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.ZoneId
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.tally.core.time.AppClock
@@ -62,15 +63,16 @@ class WeightViewModel @Inject constructor(
         return true
     }
 
-    private val deletedEvents = MutableSharedFlow<WeightEntry>(extraBufferCapacity = 8)
+    // Channel : un événement émis pendant une recréation d'écran n'est pas perdu (pas de replay nécessaire).
+    private val deletedEvents = Channel<WeightEntry>(Channel.BUFFERED)
 
     /** Pesées supprimées, réinsérables via [undo]. */
-    val deleted: SharedFlow<WeightEntry> = deletedEvents
+    val deleted: Flow<WeightEntry> = deletedEvents.receiveAsFlow()
 
     fun delete(entry: WeightEntry) {
         viewModelScope.launch {
             repository.delete(entry.id)
-            deletedEvents.emit(entry)
+            deletedEvents.send(entry)
         }
     }
 

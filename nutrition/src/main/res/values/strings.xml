@@ -69,6 +69,8 @@
     <string name="journal_empty_body">Add what you eat to track your day.</string>
     <string name="journal_deleted">%1$s deleted</string>
     <string name="action_undo">Undo</string>
+    <string name="journal_delete_failed">Could not delete the entry</string>
+    <string name="journal_undo_failed">Could not restore the entry</string>
     <string name="macro_legend_protein">P %1$s g</string>
     <string name="macro_legend_carbs">C %1$s g</string>
     <string name="macro_legend_fat">F %1$s g</string>
@@ -105,4 +107,5 @@
     <string name="scan_rate_limited">Too many lookups. Try again in %1$d s.</string>
     <string name="scan_create_manual">Create manually</string>
     <string name="action_back">Back</string>
+    <string name="recipe_choose_ingredient">Choose this ingredient</string>
 </resources>
