@@ -597,7 +597,7 @@ app_setting (k/v)
 
 | # | Point | Vérification |
 |---|---|---|
-| U1 | Version/API exacte `io.github.zxing-cpp:android`, taille `.so`/ABI, alignement 16 Ko | Maven Central, APK de test, `apkanalyzer` |
+| U1 | Version/API exacte `io.github.zxing-cpp:android`, taille `.so`/ABI, alignement 16 Ko | Maven Central, APK de test, `apkanalyzer` — **alignement 16 Ko levé** (audit 2026-10-16 : `LOAD align 0x4000` sur les 4 ABI ; reste `zipalign -P 16` sur l'APK final) |
 | U2 | Politique F-Droid pour AAR natif précompilé | Apps F-Droid existantes (scanners), revue de demande d'inclusion |
 | U3 | Dépendances GMS de `core-location-altitude`, `desugar_jdk_libs` | `./gradlew :activity:dependencies`, POM |
 | U4 | Redémarrage FGS `location` `START_STICKY` sur Android 14-16 | Test appareil (`am kill`, Doze) |
@@ -635,9 +635,9 @@ app_setting (k/v)
 | D8 | Hilt comme DI | Oui | Koin / manuel : moins de compile-time safety |
 | D9 | User-Agent OFF : nom + URL du dépôt | Oui, jamais d'email | — |
 | D10 | Langue source EN + FR complète | Oui | FR seul : plus rapide, moins ouvert |
-| D11 | Nom de l'app / `applicationId` / URL dépôt public | À fournir | Bloque UA OFF, manifeste, F-Droid |
+| D11 | Nom de l'app / `applicationId` / URL dépôt public | **Tranché de fait (audit 2026-10-16)** : « Tally », `org.tally.app`, `https://github.com/kerstz/poids` | Bloque UA OFF, manifeste, F-Droid |
 | D12 | Rôle de `Archive/` (ancienne implémentation) : repartir de zéro ou récupérer des parties | À trancher | Réutilisation = autre plan, hors périmètre de cet audit |
-| D13 | Structure du dépôt : conserver `Poids/` + `audit/` + `docs/` ; ajouter `audit/` au `.gitignore` | Oui | Dépôts tiers dans l'historique git |
+| D13 | Structure du dépôt : conserver `Poids/` + `audit/` + `docs/` ; ajouter `audit/` au `.gitignore` | **Fait** (`audit/` et `Archive/` ignorés, absents de l'historique) | Dépôts tiers dans l'historique git |
 
 ---
 
