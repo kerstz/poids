@@ -208,8 +208,17 @@ object RecipeValidation {
 }
 
 object FoodValidation {
+    /**
+     * Macros obligatoires finies et >= 0 ; champs de détail optionnels (sucres, AGS, fibres, sel) null ou finis
+     * et >= 0 ; densité null ou finie et > 0. Même règle que la validation de restauration d'une sauvegarde.
+     */
     fun isValid(food: Food): Boolean =
         food.name.isNotBlank() &&
             listOf(food.per100.energyKcal, food.per100.proteinG, food.per100.carbsG, food.per100.fatG)
-                .all { it.isFinite() && it >= 0.0 }
+                .all { it.isFinite() && it >= 0.0 } &&
+            with(food.per100Detail) { listOf(sugarsG, satFatG, fiberG, saltG) }.all(::optionalNonNegative) &&
+            food.densityGPerMl.let { it == null || (it.isFinite() && it > 0.0) }
+
+    /** Champ optionnel valide : absent, ou fini et positif ou nul. */
+    fun optionalNonNegative(v: Double?): Boolean = v == null || (v.isFinite() && v >= 0.0)
 }

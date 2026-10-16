@@ -48,6 +48,7 @@ import org.tally.domain.model.FoodSource
 import org.tally.domain.nutrition.Food
 import org.tally.domain.nutrition.FoodValidation
 import org.tally.domain.nutrition.Macros
+import org.tally.domain.nutrition.NutrientDetail
 
 /** Version de l'application écrite dans le manifeste (fournie par `:app`). */
 data class AppVersion(val name: String, val code: Long)
@@ -125,13 +126,15 @@ class BackupRepositoryImpl @Inject constructor(
         table("meal_slot", MealSlotV1.serializer(), dao.mealSlots().map { it.toDto() })
         table("measurement_type", MeasurementTypeV1.serializer(), dao.measurementTypes().map { it.toDto() })
         val foods = dao.foods()
-        table("food", FoodV1.serializer(), foods.map { it.toDto() })
+        // Intégrité : un champ optionnel invalide déjà en base (valeur négative ou non finie, densité <= 0) est
+        // exporté en null, sans toucher aux macros obligatoires, pour que toute sauvegarde reste restaurable.
+        table("food", FoodV1.serializer(), foods.map { it.toDto().sanitized() })
         table("food_portion", FoodPortionV1.serializer(), dao.foodPortions().map { it.toDto() })
-        table("recipe", RecipeV1.serializer(), dao.recipes().map { it.toDto() })
+        table("recipe", RecipeV1.serializer(), dao.recipes().map { it.toDto().let { r -> r.copy(cookedWeightG = r.cookedWeightG?.takeIf(FoodValidation::optionalNonNegative)) } })
         table("recipe_ingredient", RecipeIngredientV1.serializer(), dao.recipeIngredients().map { it.toDto() })
         table("goal", GoalV1.serializer(), dao.goals().map { it.toDto() })
         table("measurement", MeasurementV1.serializer(), dao.measurements().map { it.toDto() })
-        table("journal_entry", JournalEntryV1.serializer(), dao.journalEntries().map { it.toDto() })
+        table("journal_entry", JournalEntryV1.serializer(), dao.journalEntries().map { it.toDto().sanitized() })
 
         val attributions = buildList {
             if (foods.any { it.source == FoodSource.OFF }) {
@@ -207,10 +210,14 @@ class BackupRepositoryImpl @Inject constructor(
             if (names.toSet() != expected || names.size != expected.size) throw Reject(RestoreError.NOT_A_BACKUP)
             if (zip.entries().asSequence().sumOf { it.size } > MAX_BYTES) throw Reject(RestoreError.TOO_LARGE)
 
+            // `entry.size` est déclaratif donc falsifiable : on compte les octets réellement décompressés,
+            // toutes entrées confondues, contre le même plafond total.
+            val budget = Budget(MAX_BYTES)
             val manifest = try {
                 JSON.decodeFromString(
                     ManifestV1.serializer(),
-                    zip.getInputStream(zip.getEntry(MANIFEST)).readBytes().toString(Charsets.UTF_8),
+                    readCapped(BoundedInputStream(zip.getInputStream(zip.getEntry(MANIFEST)), budget), MAX_MANIFEST)
+                        .toString(Charsets.UTF_8),
                 )
             } catch (_: SerializationException) {
                 throw Reject(RestoreError.NOT_A_BACKUP)
@@ -226,13 +233,13 @@ class BackupRepositoryImpl @Inject constructor(
                 val info = manifest.tables.getValue(name)
                 val md = MessageDigest.getInstance("SHA-256")
                 val out = ArrayList<D>(info.rows)
-                DigestInputStream(zip.getInputStream(zip.getEntry("data/$name.jsonl")), md).bufferedReader(Charsets.UTF_8)
+                val source = BoundedInputStream(zip.getInputStream(zip.getEntry("data/$name.jsonl")), budget)
+                DigestInputStream(source, md).bufferedReader(Charsets.UTF_8)
                     .use { reader ->
                         var n = 0
                         while (true) {
-                            val line = reader.readLine() ?: break
+                            val line = readBoundedLine(reader, name, n + 1) ?: break
                             n++
-                            if (line.length > MAX_LINE) throw Reject(RestoreError.TOO_LARGE, name, n)
                             try {
                                 out += JSON.decodeFromString(serializer, line)
                             } catch (_: SerializationException) {
@@ -263,6 +270,59 @@ class BackupRepositoryImpl @Inject constructor(
         }
     }
 
+    /** Compteur partagé d'octets décompressés restants. */
+    private class Budget(var remaining: Long)
+
+    /** Flux qui lève [RestoreError.TOO_LARGE] dès que le budget d'octets réellement lus est dépassé. */
+    private class BoundedInputStream(private val delegate: InputStream, private val budget: Budget) : InputStream() {
+        private fun charge(n: Int): Int {
+            if (n > 0) {
+                budget.remaining -= n
+                if (budget.remaining < 0) throw Reject(RestoreError.TOO_LARGE)
+            }
+            return n
+        }
+
+        override fun read(): Int {
+            val b = delegate.read()
+            if (b >= 0) charge(1)
+            return b
+        }
+
+        override fun read(b: ByteArray, off: Int, len: Int): Int = charge(delegate.read(b, off, len))
+        override fun close() = delegate.close()
+    }
+
+    /** Lit au plus [limit] octets ; au-delà, rejet sans avoir tout lu. */
+    private fun readCapped(input: InputStream, limit: Int): ByteArray {
+        input.use {
+            val out = java.io.ByteArrayOutputStream()
+            val buf = ByteArray(8 * 1024)
+            while (true) {
+                val n = it.read(buf)
+                if (n < 0) break
+                if (out.size() + n > limit) throw Reject(RestoreError.TOO_LARGE, "manifest")
+                out.write(buf, 0, n)
+            }
+            return out.toByteArray()
+        }
+    }
+
+    /**
+     * Équivalent borné de `readLine()` : s'arrête dès que la ligne dépasse [MAX_LINE] caractères,
+     * sans attendre un éventuel retour à la ligne (évite de charger une ligne géante en mémoire).
+     */
+    private fun readBoundedLine(reader: java.io.Reader, table: String, lineNo: Int): String? {
+        val sb = StringBuilder()
+        while (true) {
+            val c = reader.read()
+            if (c < 0) return if (sb.isEmpty()) null else sb.toString()
+            if (c == '\n'.code) return sb.toString().removeSuffix("\r")
+            sb.append(c.toChar())
+            if (sb.length > MAX_LINE) throw Reject(RestoreError.TOO_LARGE, table, lineNo)
+        }
+    }
+
     @Suppress("LongParameterList")
     private fun validate(
         profile: List<ProfileV1>, settings: List<AppSettingV1>, slots: List<MealSlotV1>,
@@ -283,9 +343,10 @@ class BackupRepositoryImpl @Inject constructor(
         foods.forEachIndexed { i, f ->
             val domain = Food(
                 name = f.name, per100 = Macros(f.energyKcal, f.proteinG, f.carbsG, f.fatG),
+                per100Detail = NutrientDetail(f.sugarsG, f.satFatG, f.fiberG, f.saltG),
+                densityGPerMl = f.densityGPerMl,
             )
-            val optionals = listOf(f.sugarsG, f.satFatG, f.fiberG, f.saltG, f.densityGPerMl)
-            if (!FoodValidation.isValid(domain) || !optionals.all(::ok)) bad("food", i)
+            if (!FoodValidation.isValid(domain)) bad("food", i)
             if (f.barcode != null && f.barcode != Gtin.normalize(f.barcode)) bad("food", i)
             if (f.barcode != null && f.barcode.isEmpty()) bad("food", i)
         }
@@ -334,6 +395,20 @@ class BackupRepositoryImpl @Inject constructor(
         }
     }
 
+    private fun FoodV1.sanitized(): FoodV1 {
+        fun opt(v: Double?) = v?.takeIf { FoodValidation.optionalNonNegative(it) }
+        return copy(
+            sugarsG = opt(sugarsG), satFatG = opt(satFatG), fiberG = opt(fiberG), saltG = opt(saltG),
+            densityGPerMl = densityGPerMl?.takeIf { it.isFinite() && it > 0.0 },
+        )
+    }
+
+    /** Détail nutritionnel optionnel invalide → null ; les macros obligatoires ne sont pas modifiées. */
+    private fun JournalEntryV1.sanitized(): JournalEntryV1 {
+        fun opt(v: Double?) = v?.takeIf(FoodValidation::optionalNonNegative)
+        return copy(sugarsG = opt(sugarsG), satFatG = opt(satFatG), fiberG = opt(fiberG), saltG = opt(saltG))
+    }
+
     private fun ByteArray.toHex() = joinToString("") { "%02x".format(it) }
 
     private companion object {
@@ -343,6 +418,7 @@ class BackupRepositoryImpl @Inject constructor(
         const val WEIGHT_KEY = "builtin.weight"
         const val MAX_BYTES = 256L * 1024 * 1024
         const val MAX_LINE = 1024 * 1024
+        const val MAX_MANIFEST = 64 * 1024
         const val FIXED_TIME = 315_532_800_000L // 1980-01-01 : archives reproductibles
         val BUILTIN_MEALS = setOf("breakfast", "lunch", "dinner", "snack")
         /** Réglages techniques propres à l'appareil : ni sauvegardés, ni effacés à la restauration. */

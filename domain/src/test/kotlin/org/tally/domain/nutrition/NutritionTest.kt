@@ -96,3 +96,18 @@ class SaveUseCasesTest {
         assertEquals(1, repo.saved)
     }
 }
+
+class FoodValidationOptionalFieldsTest {
+    private val base = Food(name = "X", per100 = Macros(10.0, 1.0, 1.0, 1.0))
+
+    @org.junit.Test
+    fun rejectsNegativeOrNonFiniteOptionalDetailAndNonPositiveDensity() {
+        assertTrue(FoodValidation.isValid(base.copy(per100Detail = NutrientDetail(0.0, 1.0, null, 2.0), densityGPerMl = 1.2)))
+        assertFalse(FoodValidation.isValid(base.copy(per100Detail = NutrientDetail(sugarsG = -0.1))))
+        assertFalse(FoodValidation.isValid(base.copy(per100Detail = NutrientDetail(satFatG = Double.NaN))))
+        assertFalse(FoodValidation.isValid(base.copy(per100Detail = NutrientDetail(fiberG = Double.POSITIVE_INFINITY))))
+        assertFalse(FoodValidation.isValid(base.copy(per100Detail = NutrientDetail(saltG = -1.0))))
+        assertFalse(FoodValidation.isValid(base.copy(densityGPerMl = 0.0)))
+        assertFalse(FoodValidation.isValid(base.copy(densityGPerMl = -1.0)))
+    }
+}
