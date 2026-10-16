@@ -5,6 +5,10 @@ plugins {
 android {
     namespace = "org.tally.app"
 
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
+
     defaultConfig {
         applicationId = "org.tally.app"
         versionCode = 1
@@ -41,6 +45,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
 }
 
 // Garde-fou permissions : le manifeste release fusionné doit rester dans la liste blanche.
