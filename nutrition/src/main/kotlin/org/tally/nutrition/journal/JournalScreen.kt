@@ -39,6 +39,19 @@ fun JournalScreen(
         }
     }
 
+    val deleteFailed = stringResource(R.string.journal_delete_failed)
+    val undoFailed = stringResource(R.string.journal_undo_failed)
+    LaunchedEffect(viewModel) {
+        viewModel.errors.collect { error ->
+            snackbar.showSnackbar(
+                message = when (error) {
+                    JournalError.DELETE_FAILED -> deleteFailed
+                    JournalError.UNDO_FAILED -> undoFailed
+                },
+            )
+        }
+    }
+
     JournalContent(
         state = state,
         snackbarHostState = snackbar,

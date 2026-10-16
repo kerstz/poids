@@ -69,6 +69,8 @@
     <string name="journal_empty_body">Ajoute ce que tu manges pour suivre ta journée.</string>
     <string name="journal_deleted">%1$s supprimé</string>
     <string name="action_undo">Annuler</string>
+    <string name="journal_delete_failed">Impossible de supprimer l\'entrée</string>
+    <string name="journal_undo_failed">Impossible de restaurer l\'entrée</string>
     <string name="macro_legend_protein">P %1$s g</string>
     <string name="macro_legend_carbs">G %1$s g</string>
     <string name="macro_legend_fat">L %1$s g</string>
@@ -105,4 +107,5 @@
     <string name="scan_rate_limited">Trop de recherches. Réessayez dans %1$d s.</string>
     <string name="scan_create_manual">Créer à la main</string>
     <string name="action_back">Retour</string>
+    <string name="recipe_choose_ingredient">Choisir cet ingrédient</string>
 </resources>
