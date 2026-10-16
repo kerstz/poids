@@ -237,7 +237,7 @@ private fun TargetSheet(initial: Double?, onDismiss: () -> Unit, onSave: (Double
         label = stringResource(R.string.journal_target_label),
         unit = stringResource(R.string.journal_kcal_unit),
         confirmLabel = stringResource(R.string.action_save),
-        onConfirm = { if (valid) onSave(value!!) },
+        onConfirm = { if (value != null && value > 0) onSave(value) },
         onDismiss = onDismiss,
         confirmEnabled = valid,
     )

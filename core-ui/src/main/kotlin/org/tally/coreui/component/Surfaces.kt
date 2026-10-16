@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import org.tally.coreui.theme.TallyTheme
@@ -25,10 +26,11 @@ import org.tally.coreui.theme.TallyTheme
 fun TallyCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
+    onClickLabel: String? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val clip = Modifier.clip(MaterialTheme.shapes.medium).background(TallyTheme.colors.surface1)
-    val click = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
+    val click = if (onClick != null) Modifier.clickable(onClickLabel = onClickLabel, role = Role.Button, onClick = onClick) else Modifier
     Column(
         modifier = modifier.then(clip).then(click).padding(TallyTheme.spacing.l),
         verticalArrangement = Arrangement.spacedBy(TallyTheme.spacing.s),

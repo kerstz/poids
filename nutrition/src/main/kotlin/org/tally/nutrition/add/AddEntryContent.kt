@@ -357,7 +357,7 @@ private fun FoodSheet(
         },
         confirmLabel = stringResource(R.string.action_add),
         confirmEnabled = valid,
-        onConfirm = { onConfirm(quantity!!, portion?.id, if (portion != null) amount else null) },
+        onConfirm = { if (quantity != null) onConfirm(quantity, portion?.id, if (portion != null) amount else null) },
         onDismiss = onDismiss,
         preview = {
             Column {
@@ -365,7 +365,7 @@ private fun FoodSheet(
                     Text(
                         text = stringResource(
                             R.string.add_preview,
-                            formatNumber(quantity!!),
+                            formatNumber(quantity),
                             baseLabel,
                             formatKcal(NutritionCalc.macrosFor(food.per100, quantity)),
                         ),
@@ -392,7 +392,7 @@ private fun RecipeSheet(recipe: Recipe, onDismiss: () -> Unit, onConfirm: (Doubl
         unit = stringResource(R.string.add_servings_unit),
         confirmLabel = stringResource(R.string.action_add),
         confirmEnabled = valid,
-        onConfirm = { onConfirm(servings!!) },
+        onConfirm = { if (servings != null) onConfirm(servings) },
         onDismiss = onDismiss,
     )
 }

@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -141,7 +142,10 @@ private fun IngredientPickerDialog(viewModel: RecipeEditorViewModel, onDismiss: 
                         items(results, key = { it.id }) { food ->
                             ListItem(
                                 headlineContent = { Text(food.name) },
-                                modifier = Modifier.clickable { chosen = food },
+                                modifier = Modifier.clickable(
+                                    onClickLabel = stringResource(R.string.recipe_choose_ingredient),
+                                    role = Role.Button,
+                                ) { chosen = food },
                             )
                         }
                     }
@@ -157,11 +161,12 @@ private fun IngredientPickerDialog(viewModel: RecipeEditorViewModel, onDismiss: 
             }
         },
         confirmButton = {
-            if (chosen != null) {
+            val picked = chosen
+            if (picked != null) {
                 TextButton(
                     enabled = qty != null && qty > 0,
                     onClick = {
-                        viewModel.addIngredient(chosen!!, qty!!)
+                        if (qty != null) viewModel.addIngredient(picked, qty)
                         onDismiss()
                     },
                 ) { Text(stringResource(R.string.action_add)) }
