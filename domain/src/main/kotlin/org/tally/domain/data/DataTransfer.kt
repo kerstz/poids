@@ -35,6 +35,15 @@ enum class RestoreError {
     IO,
 }
 
+/**
+ * Effacement complet des données utilisateur (RGPD art. 17) : journal, poids, aliments,
+ * recettes, objectifs, réglages, sauvegarde de sécurité et cache Open Food Facts.
+ * Les données de référence intégrées (CIQUAL, créneaux de repas par défaut) sont conservées ou recréées.
+ */
+interface DataWipeRepository {
+    suspend fun wipeAll()
+}
+
 /** Exports CSV interopérables (RFC 4180, UTF-8, unités SI) ; retournent le nombre de lignes de données. */
 interface CsvExporter {
     suspend fun exportWeights(out: OutputStream): Int

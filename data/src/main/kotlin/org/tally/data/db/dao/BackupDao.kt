@@ -115,6 +115,26 @@ interface BackupDao {
             countMeasurements() == data.measurements.size && countProfile() == data.profile.size) { "COUNT_MISMATCH" }
     }
 
+    @Query("DELETE FROM track_point") suspend fun deleteTrackPoints()
+    @Query("DELETE FROM activity_session") suspend fun deleteActivitySessions()
+    @Query("DELETE FROM off_product_cache") suspend fun deleteOffCache()
+
+    /**
+     * Effacement total (RGPD art. 17) en une seule transaction : toutes les données utilisateur et le cache OFF
+     * disparaissent ; les créneaux de repas et types de mesure intégrés sont recréés à leur état initial
+     * (l'application les suppose présents) et `preserved` (réglage technique `ciqual.version`, lié à la table
+     * CIQUAL conservée) reste en place. La table `ciqual_food` (référentiel) n'est pas touchée.
+     */
+    @Transaction
+    suspend fun wipeUserData(preserved: List<String>, mealSlots: List<MealSlotEntity>, types: List<MeasurementTypeEntity>) {
+        deleteJournal(); deleteMeasurements(); deleteGoals(); deleteIngredients(); deleteRecipes()
+        deletePortions(); deleteFoods(); deleteMeasurementTypes(); deleteMealSlots()
+        deleteSettings(preserved); deleteProfile()
+        deleteTrackPoints(); deleteActivitySessions(); deleteOffCache()
+        insertMealSlots(mealSlots)
+        insertMeasurementTypes(types)
+    }
+
     private companion object {
         const val CHUNK = 500
     }
