@@ -16,7 +16,7 @@ junit = "4.13.2"
 room = "2.8.5"
 robolectric = "4.17"
 vico = "3.3.1"
-okhttp = "5.5.0"
+okhttp = "5.5.1"
 testCore = "1.7.0"
 roborazzi = "1.76.0"
 
