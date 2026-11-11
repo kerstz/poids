@@ -29,6 +29,7 @@ import org.tally.domain.body.SaveWeight
 import org.tally.domain.body.WeightEntry
 import org.tally.domain.body.WeightRepository
 import org.tally.domain.settings.SettingsRepository
+import org.tally.domain.settings.ThemeMode
 import org.tally.domain.settings.UnitPreferences
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -54,8 +55,10 @@ class WeightViewModelTest {
 
     private class FakeSettings(mass: MassUnit = MassUnit.KG) : SettingsRepository {
         override val unitPreferences: Flow<UnitPreferences> = MutableStateFlow(UnitPreferences(mass = mass))
-        override val offEnabled: Flow<Boolean> = MutableStateFlow(true)
+        override val offEnabled: Flow<Boolean> = MutableStateFlow(false)
+        override val themeMode: Flow<ThemeMode> = MutableStateFlow(ThemeMode.OLED)
         override suspend fun setOffEnabled(enabled: Boolean) = Unit
+        override suspend fun setThemeMode(mode: ThemeMode) = Unit
         override suspend fun setMassUnit(unit: MassUnit) = Unit
         override suspend fun setLengthUnit(unit: LengthUnit) = Unit
         override suspend fun setDistanceUnit(unit: DistanceUnit) = Unit

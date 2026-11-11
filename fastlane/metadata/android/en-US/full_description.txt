@@ -2,7 +2,7 @@ Tally is a free, offline-first journal for what you eat and what you weigh.
 
 • Food journal: meals, foods with portions, simple recipes, daily totals against your calorie goal.
 • Weight: history and chart, kg / lb / st.
-• Barcode scan: the camera reads EAN/UPC codes on the device. Products come from your own list first, then Open Food Facts (only the barcode or search words are sent, and you can turn this off).
+• Barcode scan: the camera reads EAN/UPC codes on the device. Products come from your own list first, then Open Food Facts if you turn it on (off by default; only the barcode or search words are sent).
 • French Ciqual food table built in, searchable offline.
 • Your data stays on your device. Back up to a ZIP file and restore it at any time; export weight and journal as CSV.
 • No ads, no trackers, no account, no Google services.

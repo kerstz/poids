@@ -28,6 +28,7 @@ import org.tally.core.unit.EnergyUnit
 import org.tally.core.unit.LengthUnit
 import org.tally.core.unit.MassUnit
 import org.tally.domain.settings.SettingsRepository
+import org.tally.domain.settings.ThemeMode
 import org.tally.domain.settings.UnitPreferences
 
 /** État de la section « Données » : une opération à la fois, résultat affiché en ligne. */
@@ -128,10 +129,15 @@ class SettingsViewModel @Inject constructor(
     val unitPreferences: StateFlow<UnitPreferences> = repository.unitPreferences
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UnitPreferences())
 
+    /** Désactivé par défaut (opt-in, PRIVACY.md) : la valeur initiale reflète ce défaut. */
     val offEnabled: StateFlow<Boolean> = repository.offEnabled
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    val themeMode: StateFlow<ThemeMode> = repository.themeMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ThemeMode.OLED)
 
     fun setOffEnabled(enabled: Boolean) = viewModelScope.launch { repository.setOffEnabled(enabled) }
+    fun setTheme(mode: ThemeMode) = viewModelScope.launch { repository.setThemeMode(mode) }
 
     fun setMass(unit: MassUnit) = viewModelScope.launch { repository.setMassUnit(unit) }
     fun setLength(unit: LengthUnit) = viewModelScope.launch { repository.setLengthUnit(unit) }

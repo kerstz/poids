@@ -10,9 +10,13 @@
     <string name="settings_unit_length">Taille</string>
     <string name="settings_unit_distance">Distance</string>
     <string name="settings_unit_energy">Énergie</string>
+    <string name="settings_theme">Apparence</string>
+    <string name="theme_oled">Sombre (OLED)</string>
+    <string name="theme_light">Clair</string>
+    <string name="theme_system">Système</string>
     <string name="settings_online">Données en ligne</string>
     <string name="settings_off_enabled">Chercher les produits sur Open Food Facts</string>
-    <string name="settings_off_hint">Seuls le code-barres ou les mots recherchés sont envoyés à Open Food Facts. Comme pour toute requête internet, Open Food Facts voit aussi votre adresse IP, l\'heure de la requête et la version de l\'app (User-Agent). Leur politique de confidentialité : https://world.openfoodfacts.org/privacy</string>
+    <string name="settings_off_hint">Désactivé par défaut. Seuls le code-barres ou les mots recherchés sont envoyés à Open Food Facts. Comme pour toute requête internet, Open Food Facts voit aussi votre adresse IP, l\'heure de la requête et la version de l\'app (User-Agent). Leur politique de confidentialité : https://world.openfoodfacts.org/privacy</string>
     <string name="settings_sources">Sources de données</string>
     <string name="settings_off_attribution">Données alimentaires : contributeurs d\'Open Food Facts, Open Database License (ODbL) 1.0. https://world.openfoodfacts.org</string>
     <string name="settings_data">Données</string>

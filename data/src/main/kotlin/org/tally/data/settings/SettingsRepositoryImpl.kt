@@ -13,6 +13,7 @@ import org.tally.core.unit.MassUnit
 import org.tally.data.db.dao.AppSettingDao
 import org.tally.data.db.entity.AppSettingEntity
 import org.tally.domain.settings.SettingsRepository
+import org.tally.domain.settings.ThemeMode
 import org.tally.domain.settings.UnitPreferences
 
 @Singleton
@@ -33,10 +34,15 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     override val offEnabled: Flow<Boolean> = dao.observeAll().map { rows ->
-        rows.firstOrNull { it.key == KEY_OFF_ENABLED }?.value?.toBooleanStrictOrNull() ?: true
+        rows.firstOrNull { it.key == KEY_OFF_ENABLED }?.value?.toBooleanStrictOrNull() ?: OFF_ENABLED_DEFAULT
+    }
+
+    override val themeMode: Flow<ThemeMode> = dao.observeAll().map { rows ->
+        rows.firstOrNull { it.key == KEY_THEME }?.value.toEnumOr(ThemeMode.OLED)
     }
 
     override suspend fun setOffEnabled(enabled: Boolean) = put(KEY_OFF_ENABLED, enabled.toString())
+    override suspend fun setThemeMode(mode: ThemeMode) = put(KEY_THEME, mode.name)
 
     override suspend fun setMassUnit(unit: MassUnit) = put(KEY_MASS, unit.name)
     override suspend fun setLengthUnit(unit: LengthUnit) = put(KEY_LENGTH, unit.name)
@@ -46,8 +52,11 @@ class SettingsRepositoryImpl @Inject constructor(
     private suspend fun put(key: String, value: String) =
         dao.put(AppSettingEntity(key, value, clock.nowMillis()))
 
-    private companion object {
+    internal companion object {
+        /** Opt-in : le réseau ne part jamais sans un geste explicite de l'utilisateur (PRIVACY.md). */
+        const val OFF_ENABLED_DEFAULT = false
         const val KEY_OFF_ENABLED = "off.enabled"
+        const val KEY_THEME = "theme.mode"
         const val KEY_MASS = "unit.mass"
         const val KEY_LENGTH = "unit.length"
         const val KEY_DISTANCE = "unit.distance"

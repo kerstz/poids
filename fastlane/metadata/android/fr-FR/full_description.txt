@@ -2,7 +2,7 @@ Tally est un journal libre, pensé hors ligne, de ce que vous mangez et de votre
 
 • Journal alimentaire : repas, aliments avec portions, recettes simples, totaux du jour face à votre objectif calorique.
 • Poids : historique et graphique, kg / lb / st.
-• Scan de code-barres : la caméra lit les codes EAN/UPC sur l'appareil. Les produits viennent d'abord de votre liste, puis d'Open Food Facts (seuls le code-barres ou les mots recherchés sont envoyés, désactivable).
+• Scan de code-barres : la caméra lit les codes EAN/UPC sur l'appareil. Les produits viennent d'abord de votre liste, puis d'Open Food Facts si vous l'activez (désactivé par défaut ; seuls le code-barres ou les mots recherchés sont envoyés).
 • Table française Ciqual intégrée, consultable hors ligne.
 • Vos données restent sur votre appareil. Sauvegarde en fichier ZIP et restauration à tout moment ; export du poids et du journal en CSV.
 • Sans publicité, sans traceur, sans compte, sans services Google.

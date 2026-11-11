@@ -17,6 +17,7 @@ import org.tally.core.time.AppClock
 import org.tally.core.unit.EnergyUnit
 import org.tally.core.unit.MassUnit
 import org.tally.data.db.TallyDatabase
+import org.tally.domain.settings.ThemeMode
 import org.tally.domain.settings.UnitPreferences
 
 @RunWith(RobolectricTestRunner::class)
@@ -43,6 +44,25 @@ class SettingsRepositoryTest {
     @Test
     fun defaultsWhenNothingStored() = runTest {
         assertEquals(UnitPreferences(), repository.unitPreferences.first())
+        // Opt-in : aucune requête Open Food Facts sans geste explicite (PRIVACY.md).
+        assertEquals(false, repository.offEnabled.first())
+        assertEquals(ThemeMode.OLED, repository.themeMode.first())
+    }
+
+    @Test
+    fun persistsOffOptInAndTheme() = runTest {
+        repository.setOffEnabled(true)
+        repository.setThemeMode(ThemeMode.LIGHT)
+        assertEquals(true, repository.offEnabled.first())
+        assertEquals(ThemeMode.LIGHT, repository.themeMode.first())
+        repository.setOffEnabled(false)
+        assertEquals(false, repository.offEnabled.first())
+    }
+
+    @Test
+    fun unknownStoredThemeFallsBackToOled() = runTest {
+        db.appSettingDao().put(org.tally.data.db.entity.AppSettingEntity(SettingsRepositoryImpl.KEY_THEME, "SEPIA", 1L))
+        assertEquals(ThemeMode.OLED, repository.themeMode.first())
     }
 
     @Test

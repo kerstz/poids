@@ -31,6 +31,7 @@ import org.tally.domain.nutrition.RemoteResult
 import org.tally.domain.nutrition.Recipe
 import org.tally.domain.nutrition.RecipeRepository
 import org.tally.domain.settings.SettingsRepository
+import org.tally.domain.settings.ThemeMode
 import org.tally.domain.settings.UnitPreferences
 import org.tally.core.time.AppClock
 import org.tally.core.unit.DistanceUnit
@@ -161,9 +162,13 @@ class FakeRemote(var result: RemoteResult<RemoteFood> = RemoteResult.Unavailable
 }
 
 class FakeSettings(offEnabled: Boolean = true) : SettingsRepository {
+    val off = MutableStateFlow(offEnabled)
+    val theme = MutableStateFlow(ThemeMode.OLED)
     override val unitPreferences: Flow<UnitPreferences> = MutableStateFlow(UnitPreferences())
-    override val offEnabled: Flow<Boolean> = MutableStateFlow(offEnabled)
-    override suspend fun setOffEnabled(enabled: Boolean) = Unit
+    override val offEnabled: Flow<Boolean> = off
+    override val themeMode: Flow<ThemeMode> = theme
+    override suspend fun setOffEnabled(enabled: Boolean) { off.value = enabled }
+    override suspend fun setThemeMode(mode: ThemeMode) { theme.value = mode }
     override suspend fun setMassUnit(unit: MassUnit) = Unit
     override suspend fun setLengthUnit(unit: LengthUnit) = Unit
     override suspend fun setDistanceUnit(unit: DistanceUnit) = Unit

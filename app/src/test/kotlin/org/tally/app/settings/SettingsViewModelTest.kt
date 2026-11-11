@@ -41,6 +41,7 @@ import org.tally.domain.data.DataWipeRepository
 import org.tally.domain.data.RestoreError
 import org.tally.domain.data.RestoreResult
 import org.tally.domain.settings.SettingsRepository
+import org.tally.domain.settings.ThemeMode
 import org.tally.domain.settings.UnitPreferences
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -54,8 +55,11 @@ class SettingsViewModelTest {
         val prefs = MutableStateFlow(UnitPreferences())
         val off = MutableStateFlow(true)
         override val unitPreferences = prefs
+        val theme = MutableStateFlow(ThemeMode.OLED)
         override val offEnabled = off
+        override val themeMode = theme
         override suspend fun setOffEnabled(enabled: Boolean) { off.value = enabled }
+        override suspend fun setThemeMode(mode: ThemeMode) { theme.value = mode }
         override suspend fun setMassUnit(unit: MassUnit) {}
         override suspend fun setLengthUnit(unit: LengthUnit) {}
         override suspend fun setDistanceUnit(unit: DistanceUnit) {}
@@ -201,5 +205,21 @@ class SettingsViewModelTest {
         advanceUntilIdle()
         assertEquals(false, settings.off.value)
         assertEquals(false, vm.offEnabled.value)
+    }
+
+    @Test fun offIsOffBeforeTheRepositoryAnswers() = runTest(dispatcher) {
+        // Valeur initiale = défaut opt-in : l'interrupteur ne s'affiche jamais « activé » par erreur.
+        assertEquals(false, viewModel().offEnabled.value)
+    }
+
+    @Test fun themeReflectsRepository() = runTest(dispatcher) {
+        val vm = viewModel()
+        backgroundScope.launch { vm.themeMode.collect { } }
+        advanceUntilIdle()
+        assertEquals(ThemeMode.OLED, vm.themeMode.value)
+        vm.setTheme(ThemeMode.LIGHT)
+        advanceUntilIdle()
+        assertEquals(ThemeMode.LIGHT, settings.theme.value)
+        assertEquals(ThemeMode.LIGHT, vm.themeMode.value)
     }
 }

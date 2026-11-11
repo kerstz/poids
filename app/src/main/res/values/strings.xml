@@ -10,9 +10,13 @@
     <string name="settings_unit_length">Length</string>
     <string name="settings_unit_distance">Distance</string>
     <string name="settings_unit_energy">Energy</string>
+    <string name="settings_theme">Appearance</string>
+    <string name="theme_oled">Dark (OLED)</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_system">System</string>
     <string name="settings_online">Online data</string>
     <string name="settings_off_enabled">Look up products on Open Food Facts</string>
-    <string name="settings_off_hint">Only the barcode or the search words are sent to Open Food Facts. As with any internet request, Open Food Facts also sees your IP address, the time of the request and the app version (User-Agent). Their privacy policy: https://world.openfoodfacts.org/privacy</string>
+    <string name="settings_off_hint">Off by default. Only the barcode or the search words are sent to Open Food Facts. As with any internet request, Open Food Facts also sees your IP address, the time of the request and the app version (User-Agent). Their privacy policy: https://world.openfoodfacts.org/privacy</string>
     <string name="settings_sources">Data sources</string>
     <string name="settings_off_attribution">Food data: Open Food Facts contributors, Open Database License (ODbL) 1.0. https://world.openfoodfacts.org</string>
     <string name="settings_data">Data</string>

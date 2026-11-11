@@ -19,7 +19,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.tally.app.R
@@ -43,6 +42,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import org.tally.coreui.component.DataRow
+import org.tally.coreui.theme.TallyTheme
+import org.tally.domain.settings.ThemeMode
 import org.tally.domain.data.RestoreError
 import org.tally.core.unit.DistanceUnit
 import org.tally.core.unit.EnergyUnit
@@ -53,13 +54,22 @@ import org.tally.core.unit.MassUnit
 fun SettingsScreen(onOpenPrivacy: () -> Unit = {}, viewModel: SettingsViewModel = hiltViewModel()) {
     val prefs by viewModel.unitPreferences.collectAsStateWithLifecycle()
     val offEnabled by viewModel.offEnabled.collectAsStateWithLifecycle()
+    val theme by viewModel.themeMode.collectAsStateWithLifecycle()
+    val spacing = TallyTheme.spacing
 
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(spacing.gutter),
     ) {
-        Text(stringResource(R.string.settings_units), style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.settings_theme), style = MaterialTheme.typography.titleLarge)
+        ChoiceRow(ThemeMode.entries, theme, ::themeLabel, viewModel::setTheme, Modifier.padding(top = spacing.s))
+
+        Text(
+            stringResource(R.string.settings_units),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(top = spacing.xl),
+        )
         UnitChoice(R.string.settings_unit_mass, MassUnit.entries, prefs.mass, ::massLabel, viewModel::setMass)
         UnitChoice(R.string.settings_unit_length, LengthUnit.entries, prefs.length, ::lengthLabel, viewModel::setLength)
         UnitChoice(R.string.settings_unit_distance, DistanceUnit.entries, prefs.distance, ::distanceLabel, viewModel::setDistance)
@@ -68,15 +78,15 @@ fun SettingsScreen(onOpenPrivacy: () -> Unit = {}, viewModel: SettingsViewModel 
         Text(
             stringResource(R.string.settings_online),
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(top = 24.dp),
+            modifier = Modifier.padding(top = spacing.xl),
         )
         // Toute la ligne est l'élément interactif (TalkBack : un seul interrupteur, cible ≥ 48 dp).
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 48.dp)
-                .padding(top = 8.dp)
+                .heightIn(min = TallyTheme.dimens.touchTarget)
+                .padding(top = spacing.s)
                 .toggleable(value = offEnabled, role = Role.Switch, onValueChange = viewModel::setOffEnabled),
         ) {
             Text(
@@ -92,19 +102,19 @@ fun SettingsScreen(onOpenPrivacy: () -> Unit = {}, viewModel: SettingsViewModel 
 
         DataSection(viewModel)
 
-        TextButton(onClick = onOpenPrivacy, modifier = Modifier.padding(top = 24.dp)) {
+        TextButton(onClick = onOpenPrivacy, modifier = Modifier.padding(top = spacing.xl)) {
             Text(stringResource(R.string.settings_privacy_open))
         }
 
         Text(
             stringResource(R.string.settings_sources),
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(top = 24.dp),
+            modifier = Modifier.padding(top = spacing.xl),
         )
         Text(
             stringResource(R.string.settings_off_attribution),
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(top = 8.dp),
+            modifier = Modifier.padding(top = spacing.s),
         )
 
         AboutSection()
@@ -116,6 +126,7 @@ private fun DataSection(viewModel: SettingsViewModel) {
     val status by viewModel.data.collectAsStateWithLifecycle()
     val busy = status == DataStatus.Busy
     val today = remember { java.time.LocalDate.now().toString() }
+    val spacing = TallyTheme.spacing
 
     val saveBackup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) {
         it?.let(viewModel::exportBackup)
@@ -133,14 +144,14 @@ private fun DataSection(viewModel: SettingsViewModel) {
     Text(
         stringResource(R.string.settings_data),
         style = MaterialTheme.typography.titleLarge,
-        modifier = Modifier.padding(top = 24.dp),
+        modifier = Modifier.padding(top = spacing.xl),
     )
     if (busy) {
         val label = stringResource(R.string.data_busy)
         LinearProgressIndicator(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp)
+                .padding(top = spacing.s)
                 .semantics { contentDescription = label },
         )
     }
@@ -209,7 +220,7 @@ private fun DataSection(viewModel: SettingsViewModel) {
             message,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier
-                .padding(top = 8.dp)
+                .padding(top = spacing.s)
                 .semantics { liveRegion = LiveRegionMode.Polite },
         )
         if (status is DataStatus.Restored) {
@@ -229,9 +240,21 @@ private fun <E : Enum<E>> UnitChoice(
     Text(
         text = stringResource(labelRes),
         style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+        modifier = Modifier.padding(top = TallyTheme.spacing.l, bottom = TallyTheme.spacing.s),
     )
-    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+    ChoiceRow(options, selected, labelOf, onSelect)
+}
+
+/** Choix exclusif en boutons segmentés (unités, thème) : une seule ligne, cible ≥ 48 dp par défaut M3. */
+@Composable
+private fun <E : Enum<E>> ChoiceRow(
+    options: List<E>,
+    selected: E,
+    labelOf: (E) -> Int,
+    onSelect: (E) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    SingleChoiceSegmentedButtonRow(modifier = modifier.fillMaxWidth()) {
         options.forEachIndexed { index, option ->
             SegmentedButton(
                 selected = option == selected,
@@ -265,6 +288,12 @@ private fun energyLabel(u: EnergyUnit) = when (u) {
     EnergyUnit.KJ -> R.string.unit_kj
 }
 
+private fun themeLabel(m: ThemeMode) = when (m) {
+    ThemeMode.OLED -> R.string.theme_oled
+    ThemeMode.LIGHT -> R.string.theme_light
+    ThemeMode.SYSTEM -> R.string.theme_system
+}
+
 /**
  * Confirmation d'effacement en bottom sheet (pas d'AlertDialog, cf. docs/UI.md).
  * Exception à la règle « jamais de confirmation » : l'effacement est irréversible (pas d'Annuler possible).
@@ -273,12 +302,13 @@ private fun energyLabel(u: EnergyUnit) = when (u) {
 @Composable
 private fun WipeConfirmSheet(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 24.dp)) {
+        val spacing = TallyTheme.spacing
+        Column(modifier = Modifier.padding(horizontal = spacing.gutter).padding(bottom = spacing.xl)) {
             Text(stringResource(R.string.data_wipe_confirm_title), style = MaterialTheme.typography.titleLarge)
             Text(
                 stringResource(R.string.data_wipe_confirm_body),
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.padding(top = spacing.s),
             )
             Button(
                 onClick = onConfirm,
@@ -286,9 +316,9 @@ private fun WipeConfirmSheet(onConfirm: () -> Unit, onDismiss: () -> Unit) {
                     containerColor = MaterialTheme.colorScheme.error,
                     contentColor = MaterialTheme.colorScheme.onError,
                 ),
-                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(top = 16.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = TallyTheme.dimens.touchTarget).padding(top = spacing.l),
             ) { Text(stringResource(R.string.data_wipe_confirm)) }
-            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth().heightIn(min = TallyTheme.dimens.touchTarget)) {
                 Text(stringResource(R.string.data_wipe_cancel))
             }
         }
