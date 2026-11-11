@@ -22,8 +22,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import org.tally.coreui.theme.TallyTheme
 import org.tally.domain.model.BaseUnit
 import org.tally.nutrition.R
 
@@ -33,8 +33,8 @@ fun FoodEditorScreen(onDone: () -> Unit, viewModel: FoodEditorViewModel = hiltVi
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(TallyTheme.spacing.gutter),
+        verticalArrangement = Arrangement.spacedBy(TallyTheme.spacing.m),
     ) {
         Text(
             stringResource(if (viewModel.isEditing) R.string.food_edit else R.string.food_new),
@@ -100,7 +100,7 @@ fun FoodEditorScreen(onDone: () -> Unit, viewModel: FoodEditorViewModel = hiltVi
 
         Text(stringResource(R.string.food_portions), style = MaterialTheme.typography.titleMedium)
         viewModel.portions.forEach { draft ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(TallyTheme.spacing.s)) {
                 OutlinedTextField(
                     value = draft.label,
                     onValueChange = draft::updateLabel,

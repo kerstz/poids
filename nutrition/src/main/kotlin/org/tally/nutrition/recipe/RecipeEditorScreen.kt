@@ -33,9 +33,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.tally.coreui.theme.TallyTheme
 import org.tally.domain.nutrition.Food
 import org.tally.nutrition.R
 import org.tally.nutrition.common.MacroSummary
@@ -50,8 +50,8 @@ fun RecipeEditorScreen(onDone: () -> Unit, viewModel: RecipeEditorViewModel = hi
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(TallyTheme.spacing.gutter),
+        verticalArrangement = Arrangement.spacedBy(TallyTheme.spacing.m),
     ) {
         Text(
             stringResource(if (viewModel.isEditing) R.string.recipe_edit else R.string.recipe_new),
@@ -129,7 +129,7 @@ private fun IngredientPickerDialog(viewModel: RecipeEditorViewModel, onDismiss: 
         onDismissRequest = onDismiss,
         title = { Text(chosen?.name ?: stringResource(R.string.recipe_add_ingredient)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(TallyTheme.spacing.s)) {
                 if (chosen == null) {
                     OutlinedTextField(
                         value = query,
@@ -138,7 +138,7 @@ private fun IngredientPickerDialog(viewModel: RecipeEditorViewModel, onDismiss: 
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
-                    LazyColumn(Modifier.heightIn(max = 280.dp)) {
+                    LazyColumn(Modifier.heightIn(max = TallyTheme.dimens.pickerListMaxHeight)) {
                         items(results, key = { it.id }) { food ->
                             ListItem(
                                 headlineContent = { Text(food.name) },

@@ -33,6 +33,8 @@ class TallyDimens(
     /** Réserve en bas de liste sous le FAB. */
     val fabClearance: Dp = 88.dp,
     val chartHeight: Dp = 220.dp,
+    /** Hauteur max d'une liste de choix dans une feuille/boîte (sélecteur d'ingrédient). */
+    val pickerListMaxHeight: Dp = 280.dp,
 )
 
 internal val TallyShapes = Shapes(
