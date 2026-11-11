@@ -163,11 +163,12 @@ Incertitudes : (1) compatibilité du plugin Gradle Roborazzi avec AGP 9.4 (nouve
 ## 9. État d'implémentation (jalon UI)
 
 Fait : thème (`TallyTheme(mode, dynamicAccent)`), tokens, `TallyIcons` (5 icônes vector), composants §7, `checkDesignTokens` (baseline), captures Roborazzi (bibliothèque seule, sans plugin Gradle), écran Journal migré.
+2026-11-11 : Réglages, éditeur d'aliment et éditeur de recette migrés aux tokens (`pickerListMaxHeight` ajouté) ; `config/design-tokens-baseline.txt` vide. Reste hors spec : `AlertDialog` du sélecteur d'ingrédient (RecipeEditor) à passer en bottom sheet ; sélecteur de date Poids.
 Écarts vs spec :
 - FAB sans ombre (`elevation = 0`) ; icône d'état vide = restaurant.
 - `FoodRow` a un paramètre `secondary` (macros) et `deleteLabel` ; `QuantitySheet` a `label`/`confirmLabel`/`confirmEnabled`.
 - Annuler une suppression réinsère une copie (nouvel id) via `JournalRepository.snapshot` ; pas de soft-delete.
-- Réglage thème (OLED/Clair/Système) et dynamic accent : API prête, pas encore câblée dans Réglages. L'app tourne en OLED fixe.
+- Réglage thème (OLED/Clair/Système) : câblé le 2026-11-11 (`app_setting theme.mode`, `ThemeViewModel` à la racine de `MainActivity`). Accent dynamique volontairement non exposé (contraste non garanti).
 - Réglages en icône + 3 onglets : non fait (touche `:app`, hors pilote). `TopLevelDestination` garde 4 onglets.
 - Le test de captures Journal fixe `fr` ; sheet de saisie visible dans `journal_target_sheet_*`.
 
