@@ -413,7 +413,8 @@ class BackupRepositoryImpl @Inject constructor(
 
     private companion object {
         const val FORMAT_VERSION = 1
-        const val DB_SCHEMA_VERSION = 3
+        /** Informatif (jamais contrôlé à la restauration) : la version Room qui a produit l'archive. */
+        const val DB_SCHEMA_VERSION = TallyDatabase.VERSION
         const val MANIFEST = "manifest.json"
         const val WEIGHT_KEY = "builtin.weight"
         const val MAX_BYTES = 256L * 1024 * 1024

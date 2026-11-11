@@ -49,7 +49,7 @@ import org.tally.data.db.entity.TrackPointEntity
         ActivitySessionEntity::class,
         TrackPointEntity::class,
     ],
-    version = 4,
+    version = TallyDatabase.VERSION,
     exportSchema = true,
 )
 abstract class TallyDatabase : RoomDatabase() {
@@ -67,6 +67,9 @@ abstract class TallyDatabase : RoomDatabase() {
 
     companion object {
         const val NAME = "tally.db"
+
+        /** Version du schéma Room ; recopiée dans le manifeste des sauvegardes (`dbSchemaVersion`). */
+        const val VERSION = 4
 
         val ALL_MIGRATIONS = arrayOf(
             Migrations.MIGRATION_1_2,

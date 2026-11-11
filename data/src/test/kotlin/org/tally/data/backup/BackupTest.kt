@@ -167,6 +167,8 @@ class BackupTest {
         }
         val manifest = entryBytes(archive, "manifest.json")
         assertTrue(manifest.contains("Open Food Facts") && manifest.contains("Ciqual"))
+        // Le manifeste annonce la version Room réelle (informatif, jamais contrôlé à la restauration).
+        assertTrue(manifest, manifest.contains("\"dbSchemaVersion\":${TallyDatabase.VERSION}"))
     }
 
     private suspend fun TallyDatabase.appSettingDaoValue(key: String) = appSettingDao().get(key)
