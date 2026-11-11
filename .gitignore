@@ -1,6 +1,7 @@
-# Gradle
+# Gradle / Kotlin
 .gradle/
 build/
+.kotlin/
 !gradle/wrapper/gradle-wrapper.jar
 
 # Android Studio / IntelliJ
