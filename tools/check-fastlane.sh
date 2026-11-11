@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Contrôle les métadonnées F-Droid (longueurs max : titre 50, court 80, long 4000, changelog 500).
-set -e
+set -euo pipefail
 base="$(dirname "$0")/../fastlane/metadata/android"
 for loc in en-US fr-FR; do
   for spec in title.txt:50 short_description.txt:80 full_description.txt:4000 changelogs/1.txt:500; do
