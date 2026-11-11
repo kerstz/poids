@@ -6,6 +6,9 @@ All notable changes to Tally are documented here. The format follows
 
 ## [Unreleased]
 
+No build has been tagged or published so far (no Git tag, no GitHub release); 0.1.0 below is the
+baseline the following changes are measured against.
+
 ### Added
 - Appearance setting (dark OLED by default, light, or follow system) in Settings.
 - One-tap opt-in to Open Food Facts from the "Online" tab and from an unknown barcode scan,
@@ -16,7 +19,8 @@ All notable changes to Tally are documented here. The format follows
 
 ### Changed
 - **Open Food Facts lookups are now off by default** (opt-in). Nothing leaves the device until the
-  option is enabled; see `PRIVACY.md`.
+  option is enabled; see `PRIVACY.md`. Installs with no stored `off.enabled` setting lose online
+  search and barcode lookup until the option is turned on in Settings or from the "Online" tab.
 - Open Food Facts HTTP client: TLS-only connection specs, no HTTPS to HTTP redirects, response
   bodies capped at 2 MiB.
 - Backup manifest `dbSchemaVersion` now follows the real Room schema version (4).
@@ -33,7 +37,7 @@ All notable changes to Tally are documented here. The format follows
 - No known vulnerability in the shipped (release runtime) dependencies as of 2026-11-11.
   Known advisories affect Gradle build tooling only and are tracked in `osv-scanner.toml`.
 
-## [0.1.0] - unreleased baseline (2026-10-16)
+## [0.1.0] - 2026-10-16
 
 ### Added
 - Food journal with meal slots, macros and daily energy target.
