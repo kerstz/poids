@@ -31,6 +31,7 @@ import org.tally.data.db.TallyDatabase
 import org.tally.domain.nutrition.RemoteFood
 import org.tally.domain.nutrition.RemoteResult
 import org.tally.domain.settings.SettingsRepository
+import org.tally.domain.settings.ThemeMode
 import org.tally.domain.settings.UnitPreferences
 
 private const val PRODUCT_JSON = """{"code":"3017620422003","status":1,"product":{"code":"3017620422003",
@@ -50,7 +51,9 @@ class OffRemoteTest {
         val off = MutableStateFlow(enabled)
         override val unitPreferences: Flow<UnitPreferences> = off.map { UnitPreferences() }
         override val offEnabled: Flow<Boolean> = off
+        override val themeMode: Flow<ThemeMode> = MutableStateFlow(ThemeMode.OLED)
         override suspend fun setOffEnabled(enabled: Boolean) { off.value = enabled }
+        override suspend fun setThemeMode(mode: ThemeMode) = Unit
         override suspend fun setMassUnit(unit: MassUnit) = Unit
         override suspend fun setLengthUnit(unit: LengthUnit) = Unit
         override suspend fun setDistanceUnit(unit: DistanceUnit) = Unit
@@ -189,5 +192,27 @@ class OffRemoteTest {
     fun serverErrorIsUnavailable() = runTest {
         network.code = 500
         assertEquals(RemoteResult.Unavailable, source.findByBarcode("3017620422003"))
+    }
+
+    @Test
+    fun oversizedBodyIsRefusedWithoutBeingParsed() = runTest {
+        // Corps de 2 Mio + 1 octet : refusé (Unavailable) et non mis en cache, même avec un Content-Length menteur.
+        network.body = "[" + "1,".repeat(((OFF_MAX_BODY_BYTES + 1) / 2).toInt()) + "1]"
+        assertEquals(RemoteResult.Unavailable, source.findByBarcode("3017620422003"))
+        assertEquals(0, db.offCacheDao().count())
+        // Juste sous la limite : lu normalement (ici un JSON sans `status` → NotFound, donc parsé).
+        network.body = "{\"status\":0,\"pad\":\"" + "x".repeat((OFF_MAX_BODY_BYTES - 64).toInt()) + "\"}"
+        assertEquals(RemoteResult.NotFound, source.findByBarcode("3017620422004"))
+    }
+
+    @Test
+    fun offHttpClientIsTlsOnlyWithoutDowngradeAndWithTimeouts() {
+        val client = offHttpClient()
+        assertEquals(listOf(okhttp3.ConnectionSpec.MODERN_TLS), client.connectionSpecs)
+        assertEquals(false, client.followSslRedirects)
+        assertEquals(OFF_CONNECT_TIMEOUT_S * 1_000, client.connectTimeoutMillis.toLong())
+        assertEquals(OFF_READ_TIMEOUT_S * 1_000, client.readTimeoutMillis.toLong())
+        assertEquals(OFF_CALL_TIMEOUT_S * 1_000, client.callTimeoutMillis.toLong())
+        assertEquals(null, client.cache)
     }
 }

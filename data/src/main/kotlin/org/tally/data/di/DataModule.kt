@@ -11,10 +11,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Qualifier
 import javax.inject.Singleton
-import okhttp3.OkHttpClient
-import java.util.concurrent.TimeUnit
 import org.tally.data.remote.CachedOffRemoteSource
 import org.tally.data.remote.OffApi
+import org.tally.data.remote.offHttpClient
 import org.tally.data.db.dao.CiqualDao
 import org.tally.data.db.dao.OffCacheDao
 import org.tally.domain.nutrition.FoodRemoteSource
@@ -178,11 +177,7 @@ object DataProvidersModule {
     @Provides
     @Singleton
     internal fun provideOffApi(@OffUserAgent userAgent: String): OffApi = OffApi(
-        client = OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .callTimeout(20, TimeUnit.SECONDS)
-            .build(),
+        client = offHttpClient(),
         userAgent = userAgent,
     )
 

@@ -3,7 +3,7 @@ package org.tally.data.remote
 
 import java.io.IOException
 import java.util.Locale
-import kotlin.coroutines.resume
+import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
@@ -16,10 +16,12 @@ import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonObject
 import okhttp3.Call
 import okhttp3.Callback
+import okhttp3.ConnectionSpec
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import okhttp3.ResponseBody
 import org.tally.domain.nutrition.Macros
 import org.tally.domain.nutrition.NutrientDetail
 import org.tally.domain.nutrition.RemoteFood
@@ -33,6 +35,26 @@ fun offUserAgent(appName: String, version: String, contactUrl: String): String {
     require(appName.isNotBlank() && contactUrl.startsWith("https://")) { "User-Agent OFF : nom et URL https requis" }
     return "$appName/$version (Android; +$contactUrl)"
 }
+
+/**
+ * Client HTTP dédié à Open Food Facts. Défense en profondeur par rapport à la Network Security Config :
+ * TLS moderne uniquement (aucun repli en clair au niveau OkHttp), pas de redirection HTTPS → HTTP,
+ * délais explicites, pas de cache disque (le cache est la table Room `off_product_cache`).
+ */
+fun offHttpClient(): OkHttpClient = OkHttpClient.Builder()
+    .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS))
+    .followSslRedirects(false)
+    .connectTimeout(OFF_CONNECT_TIMEOUT_S, TimeUnit.SECONDS)
+    .readTimeout(OFF_READ_TIMEOUT_S, TimeUnit.SECONDS)
+    .callTimeout(OFF_CALL_TIMEOUT_S, TimeUnit.SECONDS)
+    .build()
+
+internal const val OFF_CONNECT_TIMEOUT_S = 10L
+internal const val OFF_READ_TIMEOUT_S = 15L
+internal const val OFF_CALL_TIMEOUT_S = 20L
+
+/** Taille maximale d'une réponse OFF lue en mémoire (produit ≈ 5 Ko, recherche de 20 résultats ≈ 50 Ko). */
+internal const val OFF_MAX_BODY_BYTES = 2L * 1024 * 1024
 
 /**
  * Client Open Food Facts. User-Agent obligatoire (docs OFF), HTTPS uniquement, aucune authentification.
@@ -88,7 +110,7 @@ internal class OffApi(
                         RemoteResult.RateLimited(retryAfterMs(response))
                     response.code == 404 -> RemoteResult.NotFound
                     !response.isSuccessful -> RemoteResult.Unavailable
-                    else -> parse(response.body.string())
+                    else -> readBounded(response.body)?.let(parse) ?: RemoteResult.Unavailable
                 }
             }
         } catch (_: IOException) {
@@ -102,6 +124,16 @@ internal class OffApi(
 
     private fun retryAfterMs(response: Response): Long =
         response.header("Retry-After")?.toLongOrNull()?.times(1_000) ?: DEFAULT_RETRY_MS
+
+    /**
+     * Lit le corps en mémoire s'il tient sous [OFF_MAX_BODY_BYTES], sinon null (réponse refusée sans la
+     * charger entièrement). `Content-Length` est déclaratif : on compte les octets réellement reçus.
+     */
+    private fun readBounded(body: ResponseBody): String? {
+        val source = body.source()
+        if (source.request(OFF_MAX_BODY_BYTES + 1)) return null
+        return source.readUtf8()
+    }
 
     private companion object {
         const val FIELDS = "code,product_name,brands,nutriments,serving_quantity,last_modified_t"
@@ -118,7 +150,8 @@ private suspend fun Call.await(): Response = suspendCancellableCoroutine { cont 
         }
 
         override fun onResponse(call: Call, response: Response) {
-            cont.resume(response)
+            // Annulé entre-temps : la réponse n'a plus de lecteur, on la ferme pour libérer la connexion.
+            cont.resume(response) { _, _, _ -> response.close() }
         }
     })
 }
