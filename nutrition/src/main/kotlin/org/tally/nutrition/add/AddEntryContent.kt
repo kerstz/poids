@@ -87,6 +87,8 @@ internal fun AddEntryContent(
     onScan: () -> Unit = {},
     scanOutcome: ScanOutcome? = null,
     onCreateWithBarcode: (String) -> Unit = {},
+    /** Opt-in Open Food Facts depuis l'écran ; le code à rejouer après activation, s'il vient d'un scan. */
+    onEnableOnline: (retryCode: String?) -> Unit = {},
 ) {
     val spacing = TallyTheme.spacing
     Column(Modifier.fillMaxSize()) {
@@ -134,13 +136,26 @@ internal fun AddEntryContent(
                 is ScanOutcome.NotFound -> stringResource(R.string.scan_not_found, outcome.code)
                 is ScanOutcome.Offline -> stringResource(R.string.scan_offline, outcome.code)
                 is ScanOutcome.RateLimited -> stringResource(R.string.scan_rate_limited, outcome.seconds)
+                is ScanOutcome.Disabled -> stringResource(R.string.scan_disabled, outcome.code)
             }
-            ErrorBanner(
-                message = message,
-                retryLabel = stringResource(R.string.scan_create_manual),
-                onRetry = { onCreateWithBarcode(outcome.code) },
-                modifier = Modifier.padding(horizontal = spacing.gutter, vertical = spacing.s),
-            )
+            if (outcome is ScanOutcome.Disabled) {
+                // Opt-in : activer OFF rejoue le scan ; sinon saisie manuelle avec le code pré-rempli.
+                ErrorBanner(
+                    message = message,
+                    retryLabel = stringResource(R.string.online_enable),
+                    onRetry = { onEnableOnline(outcome.code) },
+                    secondaryLabel = stringResource(R.string.scan_create_manual),
+                    onSecondary = { onCreateWithBarcode(outcome.code) },
+                    modifier = Modifier.padding(horizontal = spacing.gutter, vertical = spacing.s),
+                )
+            } else {
+                ErrorBanner(
+                    message = message,
+                    retryLabel = stringResource(R.string.scan_create_manual),
+                    onRetry = { onCreateWithBarcode(outcome.code) },
+                    modifier = Modifier.padding(horizontal = spacing.gutter, vertical = spacing.s),
+                )
+            }
         }
         if (tab == TAB_ONLINE && online == OnlineState.Loading) {
             val loading = stringResource(R.string.online_loading)
@@ -156,7 +171,7 @@ internal fun AddEntryContent(
                 TAB_FOODS -> foodItems(foods, query, onSelectFood, onNewFood)
                 TAB_RECIPES -> recipeItems(recipes, query, onSelectRecipe, onNewRecipe)
                 TAB_CIQUAL -> ciqualItems(ciqual, query, onChooseCiqual)
-                else -> onlineItems(online, query, onSubmitOnline, onChooseRemote)
+                else -> onlineItems(online, query, onSubmitOnline, onChooseRemote, onEnable = { onEnableOnline(null) })
             }
         }
     }
@@ -237,6 +252,7 @@ private fun LazyListScope.onlineItems(
     query: String,
     onSearch: () -> Unit,
     onChoose: (RemoteFood) -> Unit,
+    onEnable: () -> Unit,
 ) {
     item(key = "online-search") {
         TextButton(
@@ -249,7 +265,13 @@ private fun LazyListScope.onlineItems(
         when (state) {
             OnlineState.Idle -> Hint(R.string.online_hint)
             OnlineState.Empty -> Hint(R.string.online_empty)
-            OnlineState.Disabled -> Hint(R.string.online_disabled)
+            // Désactivé par défaut (opt-in) : l'activation se fait ici, en connaissance de ce qui est envoyé.
+            OnlineState.Disabled -> ErrorBanner(
+                message = stringResource(R.string.online_disabled),
+                retryLabel = stringResource(R.string.online_enable),
+                onRetry = onEnable,
+                modifier = Modifier.padding(horizontal = TallyTheme.spacing.gutter),
+            )
             OnlineState.Loading -> Unit
             OnlineState.Unavailable -> ErrorBanner(
                 message = stringResource(R.string.online_unavailable),

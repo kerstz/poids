@@ -49,6 +49,8 @@ sealed interface ScanOutcome {
     data class NotFound(override val code: String) : ScanOutcome
     data class Offline(override val code: String) : ScanOutcome
     data class RateLimited(override val code: String, val seconds: Int) : ScanOutcome
+    /** Recherche Open Food Facts désactivée (opt-in) : proposer de l'activer ou de créer l'aliment. */
+    data class Disabled(override val code: String) : ScanOutcome
 }
 
 sealed interface OnlineState {
@@ -158,6 +160,7 @@ class AddEntryViewModel @Inject constructor(
                 BarcodeLookup.NotFound -> OnlineState.Empty
                 is BarcodeLookup.RateLimited -> OnlineState.RateLimited(secondsFor(lookup.retryAfterMs))
                 BarcodeLookup.Unavailable -> OnlineState.Unavailable
+                BarcodeLookup.Disabled -> OnlineState.Disabled
             }
         } else {
             when (val result = remote.search(q)) {
@@ -198,12 +201,25 @@ class AddEntryViewModel @Inject constructor(
                 is BarcodeLookup.RateLimited ->
                     _scanOutcome.value = ScanOutcome.RateLimited(code, secondsFor(r.retryAfterMs))
                 BarcodeLookup.Unavailable -> _scanOutcome.value = ScanOutcome.Offline(code)
+                BarcodeLookup.Disabled -> _scanOutcome.value = ScanOutcome.Disabled(code)
             }
         }
     }
 
     fun dismissScanOutcome() {
         _scanOutcome.value = null
+    }
+
+    /**
+     * Opt-in explicite à Open Food Facts depuis l'écran d'ajout (le réglage est désactivé par défaut).
+     * Rejoue ensuite l'action bloquée : le scan de [retryCode] s'il y en a un, sinon la recherche saisie.
+     */
+    fun enableOnline(retryCode: String? = null) {
+        viewModelScope.launch {
+            settings.setOffEnabled(true)
+            _scanOutcome.value = null
+            if (retryCode != null) onScanned(retryCode) else submitOnline()
+        }
     }
 
     /** Copie l'entrée Ciqual dans `food` puis ouvre le choix de quantité. */

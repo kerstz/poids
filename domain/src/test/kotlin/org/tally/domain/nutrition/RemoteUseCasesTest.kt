@@ -57,6 +57,13 @@ class RemoteUseCasesTest {
     }
 
     @Test
+    fun disabledRemoteIsReportedAsDisabledNotUnavailable() = runTest {
+        val remote = FakeRemote(RemoteResult.Disabled)
+        assertEquals(BarcodeLookup.Disabled, ResolveBarcode(FakeFoods(), remote)(nutella.barcode))
+        assertEquals(1, remote.calls)
+    }
+
+    @Test
     fun remoteFallbackAndRateLimitPropagate() = runTest {
         val remote = FakeRemote(RemoteResult.Success(nutella))
         assertTrue(ResolveBarcode(FakeFoods(), remote)(nutella.barcode) is BarcodeLookup.Remote)

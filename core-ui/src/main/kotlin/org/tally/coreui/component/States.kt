@@ -48,13 +48,18 @@ fun EmptyState(
     }
 }
 
-/** Erreur réseau inline avec « Réessayer » ; annoncée par TalkBack. */
+/**
+ * Erreur réseau inline avec « Réessayer » ; annoncée par TalkBack.
+ * [secondaryLabel]/[onSecondary] : action optionnelle de repli (ex. « Créer à la main »).
+ */
 @Composable
 fun ErrorBanner(
     message: String,
     retryLabel: String,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    secondaryLabel: String? = null,
+    onSecondary: () -> Unit = {},
 ) {
     Row(
         modifier = modifier
@@ -74,6 +79,11 @@ fun ErrorBanner(
                 .weight(1f)
                 .padding(vertical = TallyTheme.spacing.m),
         )
-        TextButton(onClick = onRetry) { Text(retryLabel) }
+        Column(horizontalAlignment = Alignment.End) {
+            TextButton(onClick = onRetry) { Text(retryLabel) }
+            if (secondaryLabel != null) {
+                TextButton(onClick = onSecondary) { Text(secondaryLabel) }
+            }
+        }
     }
 }

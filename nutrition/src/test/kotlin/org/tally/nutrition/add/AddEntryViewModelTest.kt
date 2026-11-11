@@ -24,6 +24,9 @@ import org.tally.domain.nutrition.LogFood
 import org.tally.domain.nutrition.LogRecipe
 import org.tally.domain.nutrition.Macros
 import org.tally.domain.nutrition.Recipe
+import org.tally.domain.nutrition.FoodRemoteSource
+import org.tally.domain.nutrition.RemoteFood
+import org.tally.domain.nutrition.RemoteResult
 import org.tally.domain.nutrition.ResolveBarcode
 import org.tally.domain.nutrition.SaveFood
 import org.tally.nutrition.FakeCiqual
@@ -45,6 +48,7 @@ class AddEntryViewModelTest {
     private val recipes = FakeRecipeRepository(listOf(Recipe(9, "Compote de pomme", 2.0, emptyList())))
     private val journal = FakeJournalRepository()
     private val remote = FakeRemote()
+    private val settings = FakeSettings()
 
     private fun viewModel(): AddEntryViewModel {
         val saveFood = SaveFood(foods)
@@ -60,7 +64,7 @@ class AddEntryViewModelTest {
             importRemoteFood = ImportRemoteFood(foods, saveFood),
             ciqual = FakeCiqual(),
             importCiqualFood = ImportCiqualFood(foods, saveFood),
-            settings = FakeSettings(),
+            settings = settings,
         )
     }
 
@@ -120,5 +124,42 @@ class AddEntryViewModelTest {
         assertEquals(ScanOutcome.Offline("5449000000996"), vm.scanOutcome.value)
         vm.dismissScanOutcome()
         assertNull(vm.scanOutcome.value)
+    }
+
+    @Test
+    fun `scan avec Open Food Facts desactive propose l'activation puis rejoue le scan`() = runTest {
+        // Opt-in : la source distante répond Disabled tant que le réglage est à faux (comme CachedOffRemoteSource).
+        settings.off.value = false
+        val gated = object : FoodRemoteSource {
+            var calls = 0
+            override suspend fun findByBarcode(barcode: String): RemoteResult<RemoteFood> {
+                if (!settings.off.value) return RemoteResult.Disabled
+                calls++
+                return RemoteResult.Success(RemoteFood(barcode, "Eau", null, Macros(0.0), null, null))
+            }
+            override suspend fun search(query: String): RemoteResult<List<RemoteFood>> = RemoteResult.Disabled
+        }
+        val vm = AddEntryViewModel(
+            savedStateHandle = SavedStateHandle(mapOf("mealSlotId" to 3L, "epochDay" to 20_000L)),
+            foodRepository = foods,
+            recipeRepository = recipes,
+            logFood = LogFood(journal, FixedClock()) { java.time.ZoneOffset.UTC },
+            logRecipe = LogRecipe(journal, FixedClock()) { java.time.ZoneOffset.UTC },
+            remote = gated,
+            resolveBarcode = ResolveBarcode(foods, gated),
+            importRemoteFood = ImportRemoteFood(foods, SaveFood(foods)),
+            ciqual = FakeCiqual(),
+            importCiqualFood = ImportCiqualFood(foods, SaveFood(foods)),
+            settings = settings,
+        )
+        vm.onScanned("5449000000996")
+        assertEquals(ScanOutcome.Disabled("5449000000996"), vm.scanOutcome.value)
+        assertEquals(0, gated.calls)
+
+        vm.enableOnline("5449000000996")
+        assertEquals(true, settings.off.value)
+        assertEquals(1, gated.calls)
+        assertNull(vm.scanOutcome.value)
+        assertEquals("Eau", vm.selectedFood.value?.food?.name)
     }
 }

@@ -57,6 +57,7 @@ fun AddEntryScreen(
             viewModel.dismissScanOutcome()
             onNewFoodWithBarcode(code)
         },
+        onEnableOnline = viewModel::enableOnline,
         onChooseCiqual = viewModel::chooseCiqual,
         onSelectRecipe = { recipeToLog = it },
         onNewFood = onNewFood,

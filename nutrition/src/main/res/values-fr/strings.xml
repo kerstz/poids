@@ -60,7 +60,8 @@
     <string name="online_loading">Recherche…</string>
     <string name="online_empty">Aucun produit exploitable trouvé.</string>
     <string name="online_unavailable">Open Food Facts est injoignable. Vérifie ta connexion.</string>
-    <string name="online_disabled">Les recherches en ligne sont désactivées dans les Réglages.</string>
+    <string name="online_disabled">La recherche Open Food Facts est désactivée (par défaut). Activez-la pour chercher des produits en ligne : seuls le code-barres ou les mots recherchés sont envoyés, jamais votre journal.</string>
+    <string name="online_enable">Activer Open Food Facts</string>
     <string name="online_rate_limited">Trop de requêtes. Réessaie dans %1$d s.</string>
     <string name="online_attribution">Données Open Food Facts, disponibles sous licence Open Database License (ODbL).</string>
     <string name="journal_kcal_unit">kcal</string>
@@ -104,6 +105,7 @@
     <string name="scan_error_body">Impossible de démarrer la caméra. Réessayez plus tard.</string>
     <string name="scan_not_found">Le code-barres %1$s n\'est ni dans la liste locale ni sur Open Food Facts.</string>
     <string name="scan_offline">Code-barres %1$s : recherche du produit indisponible pour le moment.</string>
+    <string name="scan_disabled">Code-barres %1$s absent de votre liste. La recherche Open Food Facts est désactivée.</string>
     <string name="scan_rate_limited">Trop de recherches. Réessayez dans %1$d s.</string>
     <string name="scan_create_manual">Créer à la main</string>
     <string name="action_back">Retour</string>

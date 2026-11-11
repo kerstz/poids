@@ -11,6 +11,8 @@ sealed interface BarcodeLookup {
     data object NotFound : BarcodeLookup
     data class RateLimited(val retryAfterMs: Long) : BarcodeLookup
     data object Unavailable : BarcodeLookup
+    /** Recherche en ligne désactivée par l'utilisateur (`off.enabled`) : aucune requête n'est partie. */
+    data object Disabled : BarcodeLookup
 }
 
 /** Ordre de résolution (docs/AUDIT.md §3.4) : aliment local → cache/réseau OFF → saisie manuelle. */
@@ -26,7 +28,8 @@ class ResolveBarcode(
             is RemoteResult.Success -> BarcodeLookup.Remote(result.value)
             RemoteResult.NotFound -> BarcodeLookup.NotFound
             is RemoteResult.RateLimited -> BarcodeLookup.RateLimited(result.retryAfterMs)
-            RemoteResult.Unavailable, RemoteResult.Disabled -> BarcodeLookup.Unavailable
+            RemoteResult.Unavailable -> BarcodeLookup.Unavailable
+            RemoteResult.Disabled -> BarcodeLookup.Disabled
         }
     }
 }
