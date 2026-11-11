@@ -105,7 +105,7 @@
     <string name="scan_error_body">The camera could not be started. Try again later.</string>
     <string name="scan_not_found">Barcode %1$s is not in the local list or on Open Food Facts.</string>
     <string name="scan_offline">Barcode %1$s: product lookup unavailable right now.</string>
-    <string name="scan_disabled">Barcode %1$s is not in your list. Open Food Facts lookup is off.</string>
+    <string name="scan_disabled">Barcode %1$s is not in your list. Open Food Facts lookup is off. If you turn it on, only the barcode is sent, never your journal.</string>
     <string name="scan_rate_limited">Too many lookups. Try again in %1$d s.</string>
     <string name="scan_create_manual">Create manually</string>
     <string name="action_back">Back</string>

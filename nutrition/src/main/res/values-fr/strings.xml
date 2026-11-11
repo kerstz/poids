@@ -105,7 +105,7 @@
     <string name="scan_error_body">Impossible de démarrer la caméra. Réessaie plus tard.</string>
     <string name="scan_not_found">Le code-barres %1$s n\'est ni dans la liste locale ni sur Open Food Facts.</string>
     <string name="scan_offline">Code-barres %1$s : recherche du produit indisponible pour le moment.</string>
-    <string name="scan_disabled">Code-barres %1$s absent de ta liste. La recherche Open Food Facts est désactivée.</string>
+    <string name="scan_disabled">Code-barres %1$s absent de ta liste. La recherche Open Food Facts est désactivée. Si tu l\'actives, seul le code-barres est envoyé, jamais ton journal.</string>
     <string name="scan_rate_limited">Trop de recherches. Réessaie dans %1$d s.</string>
     <string name="scan_create_manual">Créer à la main</string>
     <string name="action_back">Retour</string>
