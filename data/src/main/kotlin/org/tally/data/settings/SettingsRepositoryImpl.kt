@@ -54,7 +54,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
     internal companion object {
         /** Opt-in : le réseau ne part jamais sans un geste explicite de l'utilisateur (PRIVACY.md). */
-        const val OFF_ENABLED_DEFAULT = false
+        const val OFF_ENABLED_DEFAULT = SettingsRepository.OFF_ENABLED_DEFAULT
         const val KEY_OFF_ENABLED = "off.enabled"
         const val KEY_THEME = "theme.mode"
         const val KEY_MASS = "unit.mass"

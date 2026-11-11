@@ -129,9 +129,9 @@ class SettingsViewModel @Inject constructor(
     val unitPreferences: StateFlow<UnitPreferences> = repository.unitPreferences
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UnitPreferences())
 
-    /** Désactivé par défaut (opt-in, PRIVACY.md) : la valeur initiale reflète ce défaut. */
+    /** Désactivé par défaut (opt-in, PRIVACY.md) : la valeur initiale est ce même défaut, pas une copie. */
     val offEnabled: StateFlow<Boolean> = repository.offEnabled
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsRepository.OFF_ENABLED_DEFAULT)
 
     val themeMode: StateFlow<ThemeMode> = repository.themeMode
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ThemeMode.OLED)

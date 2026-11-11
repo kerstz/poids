@@ -27,4 +27,9 @@ interface SettingsRepository {
     suspend fun setLengthUnit(unit: LengthUnit)
     suspend fun setDistanceUnit(unit: DistanceUnit)
     suspend fun setEnergyUnit(unit: EnergyUnit)
+
+    companion object {
+        /** Valeur de [offEnabled] tant qu'aucun choix n'est stocké : opt-in, donc `false`. */
+        const val OFF_ENABLED_DEFAULT = false
+    }
 }
